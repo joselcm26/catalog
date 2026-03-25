@@ -1,6 +1,6 @@
 package com.josec.catalog.repository;
 
-import com.josec.catalog.model.Libro;
+import com.josec.catalog.model.Book;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -10,6 +10,6 @@ import org.springframework.stereotype.Repository;
 // métodos como save(), findAll(), findById(), deleteById()...
 // No hay que escribir ni una sola línea de SQL.
 @Repository
-public interface LibroRepository extends JpaRepository<Libro, Integer>{
+public interface BookRepository extends JpaRepository<Book, Integer>{
 
 }

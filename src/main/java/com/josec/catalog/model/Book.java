@@ -8,7 +8,7 @@ import lombok.Data; //Crea los getters y setters de forma invisible. Están, per
 @Data
 @Entity //Le dice a Spring: "Esta clase es una tabla en la base de datos"
 @Table(name="Libros")
-public class Libro {
+public class Book {
 
     @Id // Esta es la clave primaria (Primary key)
     @GeneratedValue(strategy = GenerationType.IDENTITY) //Se autorincrementa
