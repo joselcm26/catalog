@@ -13,7 +13,7 @@ import java.util.List;
 @Getter
 @Setter
 @Entity //Le dice a Spring: "Esta clase es una tabla en la base de datos"
-@Table(name="Libros")
+@Table(name="books")
 public class Book {
 
     @Id // Esta es la clave primaria (Primary key)
@@ -24,6 +24,8 @@ public class Book {
     private String author;
     private Integer publicationYear;
     private String synopsis;
+
+    //TODO: overall rating - media de las valoraciones colocadas por los usuarios
 
     // RELACIONES CON TABLAS
 

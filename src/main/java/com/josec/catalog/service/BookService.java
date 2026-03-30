@@ -3,8 +3,11 @@ package com.josec.catalog.service;
 
 import com.josec.catalog.dto.BookRequestDTO;
 import com.josec.catalog.dto.BookResponseDTO;
+import com.josec.catalog.dto.ReviewRequestDTO;
+import com.josec.catalog.dto.ReviewResponseDTO;
 import com.josec.catalog.exception.BookNotFoundException;
 import com.josec.catalog.model.Book;
+import com.josec.catalog.model.Review;
 import com.josec.catalog.repository.BookRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -68,6 +71,31 @@ public class BookService {
         bookRepository.delete(book);
     }
 
+    // PARA AÑADIR RESEÑAS
+    public BookResponseDTO addReviewToBook(int bookId, ReviewRequestDTO reviewDTO) {
+        // 1. Buscamos el libro al que le queremos poner la reseña
+        Book book = bookRepository.findById(bookId)
+                .orElseThrow(() -> new BookNotFoundException("Book not found with ID: " + bookId));
+
+        // 2. Creamos la entidad Review a partir del DTO
+        Review review = new Review();
+        review.setRating(reviewDTO.getRating());
+        review.setComment(reviewDTO.getComment());
+
+        // 3. LA REGLA DE ORO BIDIRECCIONAL
+        // Le decimos a la reseña cuál es su libro...
+        review.setBook(book);
+        // ...y le decimos al libro que tiene una nueva reseña
+        book.getReviews().add(review);
+
+        // 4. Guardamos el libro.
+        // ¡Atención a la magia!: con cascade = CascadeType.ALL en el modelo Book,
+        // al guardar el libro, Spring Boot automáticamente guarda la reseña en la tabla 'reviews'.
+        Book updatedBook = bookRepository.save(book);
+
+        return mapToDTO(updatedBook);
+    }
+
     // --- MÉTODOS TRADUCTORES (MAPPERS) ---
 
     private Book mapToEntity(BookRequestDTO dto) {
@@ -90,7 +118,18 @@ public class BookService {
         dto.setPublicationYear(book.getPublicationYear());
         dto.setSynopsis(book.getSynopsis());
 
-        //TODO: mapear reviews
+        // Traducimos la lista de reseñas (Entidades) a una lista de ReviewResponseDTO
+        if (book.getReviews() != null) {
+            List<ReviewResponseDTO> reviewDTOs = book.getReviews().stream().map(review -> {
+                ReviewResponseDTO reviewDTO = new ReviewResponseDTO();
+                reviewDTO.setId(review.getId().intValue());
+                reviewDTO.setRating(review.getRating());
+                reviewDTO.setComment(review.getComment());
+                return reviewDTO;
+            }).collect(Collectors.toList());
+
+            dto.setReviews(reviewDTOs);
+        }
 
         return dto;
     }

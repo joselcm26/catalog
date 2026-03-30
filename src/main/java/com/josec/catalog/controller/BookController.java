@@ -2,6 +2,8 @@ package com.josec.catalog.controller;
 
 import com.josec.catalog.dto.BookRequestDTO;
 import com.josec.catalog.dto.BookResponseDTO;
+import com.josec.catalog.dto.ReviewRequestDTO;
+import com.josec.catalog.dto.ReviewResponseDTO;
 import com.josec.catalog.model.Book;
 import com.josec.catalog.service.BookService;
 import jakarta.validation.Valid;
@@ -15,7 +17,7 @@ import java.util.List;
 //Controlador de libros. Aquí se utiliza el HTTP.
 
 @RestController
-@RequestMapping("/api/libros") //Todas las rutas empezarán por aquí
+@RequestMapping("/api/books") //Todas las rutas empezarán por aquí
 public class BookController {
 
     @Autowired
@@ -32,6 +34,14 @@ public class BookController {
     public ResponseEntity<BookResponseDTO> postBook(@Valid @RequestBody BookRequestDTO book) {
         BookResponseDTO savedBook = bookService.createBook(book);
         return ResponseEntity.status(HttpStatus.CREATED).body(savedBook); //Guarda el book que nos llega en la BD
+    }
+
+    @PostMapping("/{id}/reviews")
+    public ResponseEntity<BookResponseDTO> addReviewToBook(
+            @PathVariable("id") Integer id,
+            @Valid @RequestBody ReviewRequestDTO reviewRequestDTO) {
+        BookResponseDTO updatedBook = bookService.addReviewToBook(id, reviewRequestDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).body(updatedBook);
     }
 
     @GetMapping("/{id}")
