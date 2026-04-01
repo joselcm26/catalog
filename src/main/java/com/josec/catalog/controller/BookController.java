@@ -3,16 +3,13 @@ package com.josec.catalog.controller;
 import com.josec.catalog.dto.BookRequestDTO;
 import com.josec.catalog.dto.BookResponseDTO;
 import com.josec.catalog.dto.ReviewRequestDTO;
-import com.josec.catalog.dto.ReviewResponseDTO;
-import com.josec.catalog.model.Book;
 import com.josec.catalog.service.BookService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 //Controlador de libros. Aquí se utiliza el HTTP.
 
@@ -24,8 +21,12 @@ public class BookController {
     private BookService bookService; //Inyección de repositorio para poder usarlo
 
     @GetMapping // GET HTTP
-    public ResponseEntity<List<BookResponseDTO>> findAll() {
-        return ResponseEntity.ok(bookService.getAllBooks()); //Busca en la BD y lo devuelve
+    public ResponseEntity<Page<BookResponseDTO>> findAll(
+            //Parámetros de página
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+       ) {
+       return ResponseEntity.ok(bookService.getAllBooks(page, size));
     }
 
     // El @Valid le dice a Spring: "Antes de entrar aquí, comprueba que se cumplan

@@ -14,6 +14,9 @@ import com.josec.catalog.repository.BookRepository;
 import com.josec.catalog.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -32,14 +35,16 @@ public class BookService {
 
     // --- MÉTODOS PRINCIPALES ---
 
-    public List<BookResponseDTO> getAllBooks() {
+    public Page<BookResponseDTO> getAllBooks(int page, int size) {
+        // 1. Crear objeto de paginación con su tamaño
+        Pageable pageable = PageRequest.of(page, size);
 
-        List<Book> books = bookRepository.findAll();
+        // 2. El repositorio nos devuelve una página de libros, no una lista, con datos y metadatos
+        Page<Book> bookPage = bookRepository.findAll(pageable);
 
-        //Convertir la lista de entidades book a una lista BookResponseDTO
-        return books.stream()
-                .map(this::mapToDTO)
-                .collect(Collectors.toList());
+        // 3. El objeto se puede mapear con .map() sin perder los metadatos
+        return bookPage.map(this::mapToDTO);
+
     }
 
     public BookResponseDTO createBook(BookRequestDTO requestDTO) {
