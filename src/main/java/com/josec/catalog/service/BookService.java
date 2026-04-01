@@ -6,9 +6,12 @@ import com.josec.catalog.dto.BookResponseDTO;
 import com.josec.catalog.dto.ReviewRequestDTO;
 import com.josec.catalog.dto.ReviewResponseDTO;
 import com.josec.catalog.exception.BookNotFoundException;
+import com.josec.catalog.exception.UserNotFoundException;
 import com.josec.catalog.model.Book;
 import com.josec.catalog.model.Review;
+import com.josec.catalog.model.User;
 import com.josec.catalog.repository.BookRepository;
+import com.josec.catalog.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -18,8 +21,14 @@ import java.util.stream.Collectors;
 @Service // Le indicamos a Spring que esta es nuestra capa de lógica de negocio
 public class BookService {
 
+    // --- REPOSITORIOS ---
+
     @Autowired
-    private BookRepository bookRepository; // El servicio habla con la base de datos
+    private BookRepository bookRepository; // Repo de libros
+
+    @Autowired
+    private UserRepository userRepository; // Repo de usuarios
+
 
     // --- MÉTODOS PRINCIPALES ---
 
@@ -77,19 +86,24 @@ public class BookService {
         Book book = bookRepository.findById(bookId)
                 .orElseThrow(() -> new BookNotFoundException("Book not found with ID: " + bookId));
 
-        // 2. Creamos la entidad Review a partir del DTO
+        // 2. Buscamos al usuario
+        User user = userRepository.findById(reviewDTO.getUserId())
+                .orElseThrow(() -> new UserNotFoundException("User not found with ID: " + reviewDTO.getUserId()));
+
+        // 3. Creamos la entidad Review a partir del DTO
         Review review = new Review();
         review.setRating(reviewDTO.getRating());
         review.setComment(reviewDTO.getComment());
 
-        // 3. LA REGLA DE ORO BIDIRECCIONAL
-        // Le decimos a la reseña cuál es su libro...
+        // 4. LA REGLA DE ORO BIDIRECCIONAL
+        // Le decimos a la reseña cuál es su libro y usuario...
         review.setBook(book);
-        // ...y le decimos al libro que tiene una nueva reseña
+        review.setUser(user);
+        // ... y le decimos al libro que tiene una nueva reseña
         book.getReviews().add(review);
 
-        // 4. Guardamos el libro.
-        // ¡Atención a la magia!: con cascade = CascadeType.ALL en el modelo Book,
+        // 5. Guardamos el libro.
+        // Con cascade = CascadeType.ALL en el modelo Book,
         // al guardar el libro, Spring Boot automáticamente guarda la reseña en la tabla 'reviews'.
         Book updatedBook = bookRepository.save(book);
 
@@ -125,6 +139,8 @@ public class BookService {
                 reviewDTO.setId(review.getId().intValue());
                 reviewDTO.setRating(review.getRating());
                 reviewDTO.setComment(review.getComment());
+                reviewDTO.setUserId(review.getUser().getId().longValue());
+                reviewDTO.setUsername(review.getUser().getUsername());
                 return reviewDTO;
             }).collect(Collectors.toList());
 

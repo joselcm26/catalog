@@ -9,8 +9,8 @@ import java.util.List;
 
 @Getter
 @Setter
-@Entity
-@Table(name = "movies")
+//@Entity
+//@Table(name = "movies")
 /*
  * Clase entidad para las películas.
  *
@@ -33,6 +33,6 @@ public class Movie {
     // RELACIONES CON TABLAS
 
     // Relación con Review
-    @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Review> reviews= new ArrayList<>();
+//    @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, orphanRemoval = true)
+//    private List<Review> reviews= new ArrayList<>();
 }

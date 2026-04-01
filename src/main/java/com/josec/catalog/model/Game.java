@@ -9,8 +9,8 @@ import java.util.List;
 
 @Getter
 @Setter
-@Entity
-@Table(name = "Games")
+//@Entity
+//@Table(name = "Games")
 /*
  * Clase entidad para los juegos.
  *
@@ -31,8 +31,8 @@ public class Game {
     // RELACIONES CON TABLAS
 
     // Relación con Review
-    @OneToMany(mappedBy = "game", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Review> reviews= new ArrayList<>();
+//    @OneToMany(mappedBy = "game", cascade = CascadeType.ALL, orphanRemoval = true)
+//    private List<Review> reviews= new ArrayList<>();
 
 
 }

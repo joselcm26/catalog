@@ -3,10 +3,15 @@ package com.josec.catalog.dto;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 @Data
 public class ReviewRequestDTO {
+
+    //ID del usuario que ha hecho la reseña
+    @NotNull(message = "The user ID is mandatory")
+    private Long userId;
 
     @Min(value = 1, message = "The minimun rating is 1")
     @Max(value = 5, message = "The maximun rating is 5")

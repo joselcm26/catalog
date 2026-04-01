@@ -24,4 +24,9 @@ public class Review {
     @ManyToOne(fetch = FetchType.LAZY) //"Muchas" reseñas pertenecen a "Un" libro
     @JoinColumn(name = "book_id") // Así se llamará la columna en la base de datos
     private Book book;
+
+    //Relación con users
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
 }

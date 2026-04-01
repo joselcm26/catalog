@@ -2,6 +2,8 @@ package com.josec.catalog.service;
 
 import com.josec.catalog.dto.UserRequestDTO;
 import com.josec.catalog.dto.UserResponseDTO;
+import com.josec.catalog.exception.EmailAlreadyExistsException;
+import com.josec.catalog.exception.UsernameAlreadyExistsException;
 import com.josec.catalog.model.User;
 import com.josec.catalog.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,22 +19,29 @@ public class UserService {
 
     public UserResponseDTO registerUser(UserRequestDTO userRequestDTO) {
 
-        if(userRequestDTO != null) {
-          User user = mapToEntity(userRequestDTO);// Traducir
-          if(userRepository.findByUsername(user.getUsername()).isPresent()) { //Comprobar si existe
-              throw new RuntimeException("Username already exist");
-          }
-          User savedUser = userRepository.save(user); // Guardar
-          return mapToDTO(savedUser); // Devolver traducido a DTO
+        // 1. Comprobar Username
+        if(userRepository.existsByUsername(userRequestDTO.getUsername())) { //Comprobar si existe
+          throw new UsernameAlreadyExistsException("Username already exists");
+
         }
-        throw new RuntimeException("Data provided is invalid");
+
+        // 2. Comprobar Email
+        if(userRepository.existsByEmail(userRequestDTO.getEmail())) { //Comprobar si existe el email
+          throw new EmailAlreadyExistsException("The email is in use by another user");
+        }
+
+        // 3. Traducir, guardar y devolver
+        User user = mapToEntity(userRequestDTO);// Traducir
+        User savedUser = userRepository.save(user); // Guardar
+        return mapToDTO(savedUser); // Devolver traducido a DTO
+
     }
 
     // - MÉTODOS PRIVADOS -
 
     /**
      * Mapea objetos @UserRequestDTO en objetos @User
-     * @param userRequestDTO
+     * @param userRequestDTO objeto DTO a convertir
      * @return Objeto User
      */
     private User mapToEntity(UserRequestDTO userRequestDTO) {
@@ -51,6 +60,8 @@ public class UserService {
     private UserResponseDTO mapToDTO(User user) {
         UserResponseDTO userResponseDTO = new UserResponseDTO();
         userResponseDTO.setUsername(user.getUsername());
+        userResponseDTO.setEmail(user.getEmail());
+        userResponseDTO.setId(user.getId().longValue());
         return userResponseDTO;
     }
 }
