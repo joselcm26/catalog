@@ -11,5 +11,10 @@ public class BookResponseDTO {
     private String author;
     private Integer publicationYear;
     private String synopsis;
+
+    // Reviews
     private List<ReviewResponseDTO> reviews;
+
+    //Nota media de reviews
+    private Double averageRating;
 }

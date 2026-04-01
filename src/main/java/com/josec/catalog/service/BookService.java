@@ -117,6 +117,12 @@ public class BookService {
 
     // --- MÉTODOS TRADUCTORES (MAPPERS) ---
 
+    /**
+     * Traducción de DTO a entidad.
+     *
+     * @param dto a convertir
+     * @return Entidad @Book traducida
+     */
     private Book mapToEntity(BookRequestDTO dto) {
         Book book = new Book();
         book.setTitle(dto.getTitle());
@@ -129,7 +135,15 @@ public class BookService {
         return book;
     }
 
+    /**
+     * Traduce un objeto @Book a un objeto BookResponseDTO. Además, calcula
+     * la nota media de las reviews.
+     *
+     * @param book a convertir a DTO
+     * @return DTO con nota media
+     */
     private BookResponseDTO mapToDTO(Book book) {
+
         BookResponseDTO dto = new BookResponseDTO();
         dto.setId(book.getId().intValue()); // Asumo que en tu modelo Book tienes un getId() o la anotación @Data
         dto.setTitle(book.getTitle());
@@ -150,6 +164,24 @@ public class BookService {
             }).collect(Collectors.toList());
 
             dto.setReviews(reviewDTOs);
+
+            // Calcular la media de las reviews del libro
+
+            //TODO: refactorizar a una clase a parte
+            //Cogemos las reseñas -> Extraemos solo la nota (mapToDouble)
+            // -> Calculamos la media (average) -> Si falla, devolvemos 0.0
+            double average = book.getReviews().stream()
+                            .mapToDouble(Review::getRating)
+                            .average()
+                            .orElse(0.0);
+
+            // Redondear a 1 decimal solamente y guardar en DTO
+            double roundedAverage = Math.round(average * 10.0) / 10.0;
+            dto.setAverageRating(roundedAverage);
+
+        }else{
+            // Libro sin reseñas
+            dto.setAverageRating(0.0);
         }
 
         return dto;
