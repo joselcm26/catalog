@@ -7,10 +7,16 @@ import com.josec.catalog.exception.UsernameAlreadyExistsException;
 import com.josec.catalog.model.User;
 import com.josec.catalog.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
 public class UserService {
+
+    // - DEPENDENCIAS -
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @Autowired
     private UserRepository userRepository; // Base de datos de usuarios
@@ -48,7 +54,9 @@ public class UserService {
         User user = new User();
         user.setUsername(userRequestDTO.getUsername());
         user.setEmail(userRequestDTO.getEmail());
-        user.setPassword(userRequestDTO.getPassword());
+
+        // Encriptamos la contraseña antes de guardarla en el objeto User
+        user.setPassword(passwordEncoder.encode(userRequestDTO.getPassword()));
         return user;
     }
 
