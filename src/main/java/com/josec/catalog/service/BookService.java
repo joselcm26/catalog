@@ -6,19 +6,20 @@ import com.josec.catalog.dto.BookResponseDTO;
 import com.josec.catalog.dto.ReviewRequestDTO;
 import com.josec.catalog.dto.ReviewResponseDTO;
 import com.josec.catalog.exception.BookNotFoundException;
-import com.josec.catalog.exception.UserNotFoundException;
 import com.josec.catalog.model.Book;
 import com.josec.catalog.model.Review;
 import com.josec.catalog.model.User;
 import com.josec.catalog.repository.BookRepository;
 import com.josec.catalog.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service // Le indicamos a Spring que esta es nuestra capa de lógica de negocio
@@ -91,23 +92,29 @@ public class BookService {
         Book book = bookRepository.findById(bookId)
                 .orElseThrow(() -> new BookNotFoundException("Book not found with ID: " + bookId));
 
-        // 2. Buscamos al usuario
-        User user = userRepository.findById(reviewDTO.getUserId())
-                .orElseThrow(() -> new UserNotFoundException("User not found with ID: " + reviewDTO.getUserId()));
+        // 2. Extraemos el nombre del usuario logueado directamente del contexto de seguridad de Spring
+        String loggedInUsername = Objects
+                .requireNonNull(SecurityContextHolder.getContext()
+                .getAuthentication())
+                .getName();
 
-        // 3. Creamos la entidad Review a partir del DTO
+        // 3. Buscamos al usuario en la base de datos usando ese nombre
+        User user = userRepository.findByUsername(loggedInUsername)
+                .orElseThrow(() -> new RuntimeException("User not found: " + loggedInUsername));
+
+        // 4. Creamos la entidad Review a partir del DTO
         Review review = new Review();
         review.setRating(reviewDTO.getRating());
         review.setComment(reviewDTO.getComment());
 
-        // 4. LA REGLA DE ORO BIDIRECCIONAL
+        // 5. LA REGLA DE ORO BIDIRECCIONAL
         // Le decimos a la reseña cuál es su libro y usuario...
         review.setBook(book);
-        review.setUser(user);
+        review.setUser(user);// Asignamos el usuario que Spring nos ha garantizado que es el real
         // ... y le decimos al libro que tiene una nueva reseña
         book.getReviews().add(review);
 
-        // 5. Guardamos el libro.
+        // 6. Guardamos el libro.
         // Con cascade = CascadeType.ALL en el modelo Book,
         // al guardar el libro, Spring Boot automáticamente guarda la reseña en la tabla 'reviews'.
         Book updatedBook = bookRepository.save(book);
