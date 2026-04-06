@@ -61,6 +61,15 @@ public class GlobalExceptionHandler {
         Map<String, String> response = new HashMap<>();
         response.put("error", ex.getMessage()); // Metemos mensaje personalizado
 
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    }
+
+    // 6. Colaborador existente
+    @ExceptionHandler(CollaboratorAlreadyAddedException.class)
+    public ResponseEntity<Map<String, String>> handleBookNotFound(CollaboratorAlreadyAddedException ex) {
+        Map<String, String> response = new HashMap<>();
+        response.put("error", ex.getMessage()); // Metemos mensaje personalizado
+
         return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
     }
 }
