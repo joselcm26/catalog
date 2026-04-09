@@ -44,9 +44,17 @@ public class JwtFilter extends OncePerRequestFilter {
 
             // Comprobamos validez del token
             if(jwtUtil.validateToken(token)) {
-                // Decir a Spring Security que este usuario está autenticado
+                // 1. Extraer el ID del token
+                int userId = jwtUtil.extractUserId(token);
+
+                // 2. Crear acreditación. Decir a Spring Security que este usuario está autenticado
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                         username, null, new ArrayList<>());
+
+                // 3. Guardar ID en los detalles de la acreditación
+                authToken.setDetails(userId);
+                
+                // 4. Oficializar autenticación
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             }
         }
