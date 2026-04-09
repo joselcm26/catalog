@@ -42,7 +42,7 @@ public class AuthController {
         }
 
         // 3. Si tôdo es correcto, generamos el token
-        String token = jwtUtil.generateToken(user.getUsername());
+        String token = jwtUtil.generateToken(user.getUsername(), user.getId());
 
         // 4. Devolver al usuario
         return ResponseEntity.ok(new AuthResponseDTO(token));

@@ -30,9 +30,10 @@ public class JwtUtil {
      * @param username propietario del token
      * @return String token generado
      */
-    public String generateToken(String username) {
+    public String generateToken(String username, int userId) {
         return Jwts.builder()
                 .setSubject(username) // A quién pertenece
+                .claim("userId", userId) // Claim con userId para incrustarlo
                 .setIssuedAt(new Date()) // Cuándo se creó
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME)) // Cuándo caduca
                 .signWith(key, SignatureAlgorithm.HS256) // firma secreta
@@ -52,6 +53,21 @@ public class JwtUtil {
                 .parseClaimsJws(token)
                 .getBody()
                 .getSubject();
+    }
+
+    /**
+     * EXTRACTOR DE ID DE USUARIO - Extrae el userId del token
+     *
+     * @param token del que se va extraer
+     * @return userId
+     */
+    public Integer extractUserId(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(token)
+                .getBody()
+                .get("userId", Integer.class);
     }
 
     /**
