@@ -4,10 +4,8 @@ import com.josec.catalog.dto.BookListRequestDTO;
 import com.josec.catalog.dto.BookListResponseDTO;
 import com.josec.catalog.dto.BookResponseDTO;
 import com.josec.catalog.dto.UserResponseDTO;
-import com.josec.catalog.exception.BookNotFoundException;
-import com.josec.catalog.exception.CollaboratorAlreadyAddedException;
-import com.josec.catalog.exception.ListNotFoundException;
-import com.josec.catalog.exception.UserNotFoundException;
+import com.josec.catalog.dto.mappers.BookMapper;
+import com.josec.catalog.exception.*;
 import com.josec.catalog.model.Book;
 import com.josec.catalog.model.BookList;
 import com.josec.catalog.model.User;
@@ -18,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+
 
 import java.util.List;
 import java.util.Objects;
@@ -39,6 +38,9 @@ public class BookListService {
 
     @Autowired
     private BookRepository bookRepository;
+
+    @Autowired
+    private BookMapper bookMapper;
 
     // --- Métodos principales ---
 
@@ -89,6 +91,21 @@ public class BookListService {
         }
 
         return mapToDTO(bookList);
+    }
+
+    public List<BookResponseDTO> searchBooksInMyList(int listId, String query) {
+        // 1. Comprobar lista
+        BookList bookList = bookListRepository.findById(listId)
+                .orElseThrow(() -> new ListNotFoundException(("List not found with Id: " + listId)));
+
+        // 2. Comprobar permisos
+        checkPermissions(bookList);
+
+        // 3. Hacer búsqueda
+        List<Book> foundBooks = bookRepository.searchBooksInsideList(listId, query);
+
+        // 4. Devolver los DTOs
+        return foundBooks.stream().map(bookMapper::mapToDTO).collect(Collectors.toList());
     }
 
     /**
@@ -180,7 +197,7 @@ public class BookListService {
         List<User> collaborators = bookList.getCollaborators();
 
         if(Objects.equals(bookList.getOwner().getId(), user.getId())) { // Comprobar que el propietario no se añada
-            throw new RuntimeException("Owner cannot add himself as collaborator");
+            throw new AccessDeniedException("Owner cannot add himself as collaborator");
         }
 
         if (collaborators.contains(user)) { // Comprobar si ya está añadido
@@ -208,7 +225,7 @@ public class BookListService {
         List<User> collaborators = bookList.getCollaborators();
 
         if(Objects.equals(bookList.getOwner().getId(), user.getId())) { // Comprobar que el propietario no se elimine
-            throw new RuntimeException("Owner cannot delete himself as collaborator");
+            throw new AccessDeniedException("Owner cannot delete himself as collaborator");
         }
 
         if (!collaborators.contains(user)) { // Comprobar si está añadido
@@ -329,11 +346,11 @@ public class BookListService {
         // Comprobaciones
         if (!bookList.isPublic() && !isOwner) {
             // Si la lista es privada, NADIE excepto el dueño puede siquiera tocarla
-            throw new RuntimeException("This list is private.");
+            throw new AccessDeniedException("This list is private.");
         }
 
         if (!isOwner && !isCollaborator) {
-            throw new RuntimeException("You don't have permission to edit this list.");
+            throw new AccessDeniedException("You don't have permission to edit this list.");
         }
     }
 
@@ -345,7 +362,7 @@ public class BookListService {
 
         // Si el que hace la petición no es el dueño de la lista, lanzamos error 403 Forbidden
         if (!bookList.getOwner().getUsername().equals(loggedInUsername)) {
-            throw new RuntimeException("Access denied: Only the owner can do this operation");
+            throw new AccessDeniedException("Access denied: Only the owner can do this operation");
         }
     }
 }

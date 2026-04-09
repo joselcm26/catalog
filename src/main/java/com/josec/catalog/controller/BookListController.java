@@ -2,6 +2,7 @@ package com.josec.catalog.controller;
 
 import com.josec.catalog.dto.BookListRequestDTO;
 import com.josec.catalog.dto.BookListResponseDTO;
+import com.josec.catalog.dto.BookResponseDTO;
 import com.josec.catalog.service.BookListService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -79,6 +80,15 @@ public class BookListController {
             @PathVariable int userId){
         BookListResponseDTO updatedBookList = bookListService.deleteCollaboratorFromList(listId, userId);
         return ResponseEntity.ok(updatedBookList);
+    }
+
+    // GET /api/lists/1/books/search?query=harry
+    @GetMapping("/{listId}/books/search")
+    public ResponseEntity<List<BookResponseDTO>> searchInList(
+            @PathVariable int listId,
+            @RequestParam String query) {
+
+        return ResponseEntity.ok(bookListService.searchBooksInMyList(listId, query));
     }
 
 }

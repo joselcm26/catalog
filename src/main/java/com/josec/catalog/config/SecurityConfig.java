@@ -47,6 +47,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/users").permitAll()
                         //Todos podrán hacer login
                         .requestMatchers("/api/auth/**").permitAll()
+                        //Logout requiere autenticación
+                        .requestMatchers("/api/auth/logout").authenticated()
                         //Endpoint de errores
                         .requestMatchers("/error").permitAll()
                         // Consola
