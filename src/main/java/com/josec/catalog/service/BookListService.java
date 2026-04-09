@@ -52,10 +52,14 @@ public class BookListService {
         // 1. Traducir los datos básicos
         BookList bookList = mapToEntity(bookListRequestDTO);
 
-        // 2. ¡NUEVO! Leemos quién es el usuario logueado en este momento
-        String loggedInUsername = Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getName();
-        User owner = userRepository.findByUsername(loggedInUsername)
-                .orElseThrow(() -> new RuntimeException("User not found: " + loggedInUsername));
+        // 2. Leemos quién es el usuario logueado en este momento
+        Long loggedInUserId = (Long) Objects
+                .requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getDetails();
+        User owner = null;
+        if (loggedInUserId != null) {
+            owner = userRepository.findById(loggedInUserId)
+                    .orElseThrow(() -> new RuntimeException("User not found: " + loggedInUserId));
+        }
 
         // 3. Asignamos al creador como dueño de la lista antes de guardar
         bookList.setOwner(owner);
@@ -92,18 +96,13 @@ public class BookListService {
      *
      * @return List<BookListResponseDTO>
      */
-    public List<BookListResponseDTO> getUserLists() {
-        // 1. Sacar nombre del token
-        String loggedInUsername = Objects
-                .requireNonNull(SecurityContextHolder.getContext().getAuthentication())
-                .getName();
-
-        // 2. Buscar al usuario en la BD para saber su ID
-        User user = userRepository.findByUsername(loggedInUsername)
-                .orElseThrow(() -> new RuntimeException("User not found: " + loggedInUsername));
+    public List<BookListResponseDTO> getMyLists() {
+        // 1. Sacar ID de usuario del token
+        Integer loggedInUserId = (Integer)Objects
+                .requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getDetails() ;
 
         //3. Buscar las listas del usuario
-        List<BookList> userLists = bookListRepository.findByOwnerId(user.getId());
+        List<BookList> userLists = bookListRepository.findByOwnerId(loggedInUserId);
 
         return userLists.stream()
                 .map(this::mapToDTO)

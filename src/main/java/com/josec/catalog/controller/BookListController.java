@@ -29,7 +29,7 @@ public class BookListController {
     }
     @GetMapping("/mylists")
     public ResponseEntity<List<BookListResponseDTO>> getMyBookLists() {
-        return ResponseEntity.ok(bookListService.getUserLists());
+        return ResponseEntity.ok(bookListService.getMyLists());
     }
     @PostMapping
     public ResponseEntity<BookListResponseDTO> postBookList(@Valid @RequestBody BookListRequestDTO bookListRequestDTO) {
