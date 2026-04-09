@@ -10,6 +10,7 @@ public class BookListResponseDTO {
     private long id;
     private String name;
     private String description;
+    private boolean isPublic;
 
     //Datos del dueño
     private long ownerID;

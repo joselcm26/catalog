@@ -41,10 +41,14 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         //Todos pueden ver el catálogo de libros
                         .requestMatchers(HttpMethod.GET, "/api/books/**").permitAll()
+                        //Todos pueden ver listas
+                        .requestMatchers(HttpMethod.GET, "/api/lists/**").permitAll()
                         //Todos pueden registrarse
                         .requestMatchers(HttpMethod.POST, "/api/users").permitAll()
                         //Todos podrán hacer login
                         .requestMatchers("/api/auth/**").permitAll()
+                        //Endpoint de errores
+                        .requestMatchers("/error").permitAll()
                         // Consola
                         .requestMatchers("/h2-console/**").permitAll()
                         //CUALQUIER otra petición (crear libros, crear reseñas,...) requiere estar logueado

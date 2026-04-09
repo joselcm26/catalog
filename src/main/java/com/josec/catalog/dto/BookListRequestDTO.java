@@ -12,4 +12,6 @@ public class BookListRequestDTO {
     //Opcional
     public String description;
 
+    public boolean isPublic;
+
 }

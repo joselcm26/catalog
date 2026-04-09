@@ -15,6 +15,7 @@ import com.josec.catalog.repository.BookListRepository;
 import com.josec.catalog.repository.BookRepository;
 import com.josec.catalog.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -71,7 +72,42 @@ public class BookListService {
     public BookListResponseDTO getBookList(int id) {
         BookList bookList = bookListRepository.findById(id)
                 .orElseThrow(() -> new ListNotFoundException(("List not found with Id: " + id)));
+
+        //Comprobación de seguridad
+        // Si la lista es PRIVADA, comprobamos si el que mira es el dueño
+        if (!bookList.isPublic()) {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+            // Si el usuario no ha enviado Token (es null), o no es el dueño, le bloqueamos
+            if (auth == null || !bookList.getOwner().getUsername().equals(auth.getName())) {
+                throw new RuntimeException("Access denied: This list is private");
+            }
+        }
+
         return mapToDTO(bookList);
+    }
+
+    /**
+     * Obtiene las listas creadas por el usuario
+     *
+     * @return List<BookListResponseDTO>
+     */
+    public List<BookListResponseDTO> getUserLists() {
+        // 1. Sacar nombre del token
+        String loggedInUsername = Objects
+                .requireNonNull(SecurityContextHolder.getContext().getAuthentication())
+                .getName();
+
+        // 2. Buscar al usuario en la BD para saber su ID
+        User user = userRepository.findByUsername(loggedInUsername)
+                .orElseThrow(() -> new RuntimeException("User not found: " + loggedInUsername));
+
+        //3. Buscar las listas del usuario
+        List<BookList> userLists = bookListRepository.findByOwnerId(user.getId());
+
+        return userLists.stream()
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
     }
 
     /**
@@ -83,6 +119,10 @@ public class BookListService {
     public BookListResponseDTO deleteBookList(int id) {
         BookList bookList = bookListRepository.findById(id)
                 .orElseThrow(() -> new ListNotFoundException(("List not found with Id: " + id)));
+
+        // Comprobar dueño
+        checkOwner(bookList);
+
         bookListRepository.delete(bookList);
         return mapToDTO(bookList);
     }
@@ -103,6 +143,14 @@ public class BookListService {
         BookList bookList = bookListRepository.findById(listId)
                 .orElseThrow(() -> new ListNotFoundException(("List not found with Id: " + listId)));
 
+        //Seguridad - comprobar si dueño o colaborador
+        checkPermissions(bookList);
+
+        //Comprobar duplicados
+        if(bookList.getBooks().contains(book)) {
+            throw new RuntimeException("Book already exists in the list");
+        }
+
         //Añadir libro y guardar lista
         List<Book> list = bookList.getBooks();
         list.add(book);
@@ -117,12 +165,12 @@ public class BookListService {
 
         // --- BARRERA DE SEGURIDAD (AUTORIZACIÓN) ---
         // Extraemos quién está haciendo la petición desde su Token
-        String loggedInUsername = Objects.requireNonNull(
-                SecurityContextHolder.getContext().getAuthentication()).getName();
+        checkOwner(bookList);
 
-        // Si el que hace la petición no es el dueño de la lista, lanzamos error 403 Forbidden
-        if (!bookList.getOwner().getUsername().equals(loggedInUsername)) {
-            throw new RuntimeException("Access denied: Only the owner can add collaborators");
+        //Comprobar si la lista es pública
+
+        if(!bookList.isPublic()){
+            throw new RuntimeException("Cannot add collaborators to a private list");
         }
 
         // 2. Buscar usuario
@@ -145,6 +193,34 @@ public class BookListService {
         return mapToDTO(bookList);
     }
 
+    public BookListResponseDTO deleteCollaboratorFromList(int listId, int userId) {
+        // 1. Buscar lista
+        BookList bookList = bookListRepository.findById(listId)
+                .orElseThrow(() -> new ListNotFoundException(("List not found with Id: " + listId)));
+
+        // --- BARRERA DE SEGURIDAD (AUTORIZACIÓN) ---
+        checkOwner(bookList);
+
+        // 2. Buscar usuario
+        User user = userRepository.findById((long) userId)
+                .orElseThrow(() -> new UserNotFoundException(("User not found with Id: " + userId)));
+
+        // 3. Eliminar usuario de la lista
+        List<User> collaborators = bookList.getCollaborators();
+
+        if(Objects.equals(bookList.getOwner().getId(), user.getId())) { // Comprobar que el propietario no se elimine
+            throw new RuntimeException("Owner cannot delete himself as collaborator");
+        }
+
+        if (!collaborators.contains(user)) { // Comprobar si está añadido
+            throw new CollaboratorAlreadyAddedException("Collaborator is not added in this list");
+        }
+
+        collaborators.remove(user);
+        bookListRepository.save(bookList);
+        return mapToDTO(bookList);
+    }
+
     /**
      * Borra el libro con bookId a la lista con listId
      *
@@ -156,6 +232,9 @@ public class BookListService {
         //Buscar lista
         BookList bookList = bookListRepository.findById(listId)
                 .orElseThrow(() -> new ListNotFoundException(("List not found with Id: " + listId)));
+
+        //Seguridad
+        checkPermissions(bookList);
 
         //Buscar y borrar libro de la lista.
         List<Book> list = bookList.getBooks();
@@ -178,6 +257,7 @@ public class BookListService {
         dto.setId(bookList.getId());
         dto.setName(bookList.getName());
         dto.setDescription(bookList.getDescription());
+        dto.setPublic(bookList.isPublic());
 
         // 1. Mapear el dueño
         if(bookList.getOwner() != null) {
@@ -225,7 +305,48 @@ public class BookListService {
         BookList bookList = new BookList();
         bookList.setName(bookListRequestDTO.getName());
         bookList.setDescription(bookListRequestDTO.getDescription());
+        bookList.setPublic(bookListRequestDTO.isPublic());
         return bookList;
 
+    }
+
+    /**
+     * Métôdo privado de apoyo para verificar si el usuario actual
+     * tiene permiso para editar la lista (dueño o colaborador).
+     */
+    private void checkPermissions(BookList bookList) {
+        //Obtener usuario loggeado
+        String loggedInUsername = Objects
+                .requireNonNull(SecurityContextHolder.getContext()
+                        .getAuthentication()).getName();
+
+        //Es dueño?
+        boolean isOwner = bookList.getOwner().getUsername().equals(loggedInUsername);
+
+        //Es colaborador?
+        boolean isCollaborator = bookList.getCollaborators().stream()
+                .anyMatch(c -> c.getUsername().equals(loggedInUsername));
+
+        // Comprobaciones
+        if (!bookList.isPublic() && !isOwner) {
+            // Si la lista es privada, NADIE excepto el dueño puede siquiera tocarla
+            throw new RuntimeException("This list is private.");
+        }
+
+        if (!isOwner && !isCollaborator) {
+            throw new RuntimeException("You don't have permission to edit this list.");
+        }
+    }
+
+    private void checkOwner(BookList bookList) {
+        // --- BARRERA DE SEGURIDAD (AUTORIZACIÓN) ---
+        // Extraemos quién está haciendo la petición desde su Token
+        String loggedInUsername = Objects.requireNonNull(
+                SecurityContextHolder.getContext().getAuthentication()).getName();
+
+        // Si el que hace la petición no es el dueño de la lista, lanzamos error 403 Forbidden
+        if (!bookList.getOwner().getUsername().equals(loggedInUsername)) {
+            throw new RuntimeException("Access denied: Only the owner can do this operation");
+        }
     }
 }

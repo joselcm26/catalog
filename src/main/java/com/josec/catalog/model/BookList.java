@@ -25,6 +25,9 @@ public class BookList {
 
     private String description;
 
+    @Column(nullable = false)
+    private boolean isPublic = true;
+
     // --- RELACIONES ---
 
     // Relación del dueño (Un usuario puede crear muchas listas)
