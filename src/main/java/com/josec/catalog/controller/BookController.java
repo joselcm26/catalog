@@ -66,8 +66,12 @@ public class BookController {
     }
 
     // -- BÚSQUEDA --
+    // GET /api/books/search?query=busqueda&page=0&size=10
     @GetMapping("/search")
-    public ResponseEntity<List<BookResponseDTO>> searchBooks(@RequestParam String query) {
-        return ResponseEntity.ok(bookService.searchBooksGlobal(query));
+    public ResponseEntity<Page<BookResponseDTO>> searchBooks(
+            @RequestParam String query,
+            @RequestParam(defaultValue = "0") int page,   //Página y tamaño por defecto
+            @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(bookService.searchBooksGlobal(query, page, size));
     }
 }

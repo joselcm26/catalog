@@ -134,9 +134,16 @@ public class BookService {
      * @param query clave de búsqueda
      * @return lista de libros si hay coincidencias
      */
-    public List<BookResponseDTO> searchBooksGlobal(String query){
-        List<Book> books = bookRepository.findByTitleContainingIgnoreCase(query);
-        return books.stream().map(bookMapper::mapToDTO).collect(Collectors.toList());
+    public Page<BookResponseDTO> searchBooksGlobal(String query, int page, int size) {
+
+        // 1. Crear la paginación
+        Pageable pageable = PageRequest.of(page, size);
+
+        // 2. Hacer consulta paginada
+        Page<Book> bookPage = bookRepository.findByTitleContainingIgnoreCase(query, pageable);
+
+        // 3. Traducir a DTO
+        return bookPage.map(bookMapper::mapToDTO);
     }
 
 

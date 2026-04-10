@@ -4,6 +4,7 @@ import com.josec.catalog.dto.BookListRequestDTO;
 import com.josec.catalog.dto.BookListResponseDTO;
 import com.josec.catalog.dto.BookResponseDTO;
 import com.josec.catalog.dto.UserResponseDTO;
+import com.josec.catalog.dto.mappers.BookListMapper;
 import com.josec.catalog.dto.mappers.BookMapper;
 import com.josec.catalog.exception.*;
 import com.josec.catalog.model.Book;
@@ -42,6 +43,9 @@ public class BookListService {
     @Autowired
     private BookMapper bookMapper;
 
+    @Autowired
+    private BookListMapper bookListMapper;
+
     // --- Métodos principales ---
 
     /**
@@ -52,7 +56,7 @@ public class BookListService {
      */
     public BookListResponseDTO createList(BookListRequestDTO bookListRequestDTO) {
         // 1. Traducir los datos básicos
-        BookList bookList = mapToEntity(bookListRequestDTO);
+        BookList bookList = bookListMapper.mapToEntity(bookListRequestDTO);
 
         // 2. Leemos quién es el usuario logueado en este momento
         Long loggedInUserId = (Long) Objects
@@ -66,7 +70,7 @@ public class BookListService {
         // 3. Asignamos al creador como dueño de la lista antes de guardar
         bookList.setOwner(owner);
         bookListRepository.save(bookList);
-        return mapToDTO(bookList);
+        return bookListMapper.mapToDTO(bookList);
     }
 
     /**
@@ -90,7 +94,7 @@ public class BookListService {
             }
         }
 
-        return mapToDTO(bookList);
+        return bookListMapper.mapToDTO(bookList);
     }
 
     public List<BookResponseDTO> searchBooksInMyList(int listId, String query) {
@@ -122,7 +126,7 @@ public class BookListService {
         List<BookList> userLists = bookListRepository.findByOwnerId(loggedInUserId);
 
         return userLists.stream()
-                .map(this::mapToDTO)
+                .map(bookListMapper::mapToDTO)
                 .collect(Collectors.toList());
     }
 
@@ -140,7 +144,7 @@ public class BookListService {
         checkOwner(bookList);
 
         bookListRepository.delete(bookList);
-        return mapToDTO(bookList);
+        return bookListMapper.mapToDTO(bookList);
     }
 
     /**
@@ -171,7 +175,7 @@ public class BookListService {
         List<Book> list = bookList.getBooks();
         list.add(book);
         bookListRepository.save(bookList);
-        return mapToDTO(bookList);
+        return bookListMapper.mapToDTO(bookList);
     }
 
     public BookListResponseDTO addCollaboratorToList(int listId, int userId) {
@@ -206,7 +210,7 @@ public class BookListService {
 
         collaborators.add(user);
         bookListRepository.save(bookList);
-        return mapToDTO(bookList);
+        return bookListMapper.mapToDTO(bookList);
     }
 
     public BookListResponseDTO deleteCollaboratorFromList(int listId, int userId) {
@@ -234,7 +238,7 @@ public class BookListService {
 
         collaborators.remove(user);
         bookListRepository.save(bookList);
-        return mapToDTO(bookList);
+        return bookListMapper.mapToDTO(bookList);
     }
 
     /**
@@ -256,76 +260,13 @@ public class BookListService {
         List<Book> list = bookList.getBooks();
         list.removeIf(book -> book.getId() == bookId);
         bookListRepository.save(bookList);
-        return mapToDTO(bookList);
+        return bookListMapper.mapToDTO(bookList);
     }
 
 
     // --- Métodos funcionales ---
 
-    /**
-     * Mapea entidades BookList a DTO
-     *
-     * @param bookList para mapear
-     * @return BookListResponseDTO mapeado
-     */
-    private BookListResponseDTO mapToDTO(BookList bookList) {
-        BookListResponseDTO dto = new BookListResponseDTO();
-        dto.setId(bookList.getId());
-        dto.setName(bookList.getName());
-        dto.setDescription(bookList.getDescription());
-        dto.setPublic(bookList.isPublic());
-
-        // 1. Mapear el dueño
-        if(bookList.getOwner() != null) {
-            dto.setOwnerID(bookList.getOwner().getId());
-            dto.setOwnerUsername(bookList.getOwner().getUsername());
-        }
-
-        // 2. Mapear colaboradores
-        if(bookList.getCollaborators() != null) {
-            List<UserResponseDTO> collaborators = bookList.getCollaborators().stream().map(user -> {
-                UserResponseDTO userDTO = new UserResponseDTO();
-                userDTO.setId(user.getId().longValue());
-                userDTO.setUsername(user.getUsername());
-                userDTO.setEmail(user.getEmail());
-                return userDTO;
-            }).collect(Collectors.toList());
-        dto.setCollaborators(collaborators);}
-
-        // 2. Mapear libros
-
-        if(bookList.getBooks() != null) {
-            List<BookResponseDTO> books = bookList.getBooks().stream().map(book -> {
-                BookResponseDTO bookDTO = new BookResponseDTO();
-                bookDTO.setId(book.getId().intValue());
-                bookDTO.setTitle(book.getTitle());
-                bookDTO.setAuthor(book.getAuthor());
-                bookDTO.setPublicationYear(book.getPublicationYear());
-                bookDTO.setSynopsis(book.getSynopsis());
-                // No se devuelven aquí las reseñas, no son necesarias
-                return bookDTO;
-            }).collect(Collectors.toList());
-            dto.setBooks(books);
-        }
-        return dto;
-    }
-
-    /**
-     * Mapea DTO a una entidad BookList
-     *
-     * @param bookListRequestDTO para mapear
-     * @return BookList mapeado
-     */
-    private BookList mapToEntity(BookListRequestDTO bookListRequestDTO) {
-
-        BookList bookList = new BookList();
-        bookList.setName(bookListRequestDTO.getName());
-        bookList.setDescription(bookListRequestDTO.getDescription());
-        bookList.setPublic(bookListRequestDTO.isPublic());
-        return bookList;
-
-    }
-
+    //TODO: mover estos dos métodos a una clase propia (cuando haya listas de más cosas serán útiles)
     /**
      * Métôdo privado de apoyo para verificar si el usuario actual
      * tiene permiso para editar la lista (dueño o colaborador).
