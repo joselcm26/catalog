@@ -27,6 +27,7 @@ public class BookMapper {
         dto.setAuthor(book.getAuthor());
         dto.setPublicationYear(book.getPublicationYear());
         dto.setSynopsis(book.getSynopsis());
+        dto.setCoverUrl(book.getCoverImage());
 
         // Traducimos la lista de reseñas (Entidades) a una lista de ReviewResponseDTO
         if (book.getReviews() != null) {
@@ -76,6 +77,7 @@ public class BookMapper {
         book.setAuthor(dto.getAuthor());
         book.setPublicationYear(dto.getPublicationYear());
         book.setSynopsis(dto.getSynopsis());
+        //TODO: mapear cover URL
 
         //TODO: mapear reviews
 

@@ -41,6 +41,10 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         //Todos pueden ver el catálogo de libros
                         .requestMatchers(HttpMethod.GET, "/api/books/**").permitAll()
+                        //Crear, modificar, borrar libros y portadas solo ADMIN (el prefijo no se pone)
+                        .requestMatchers(HttpMethod.POST, "/api/books/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, "/api/books/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/books/**").hasRole("ADMIN")
                         //Todos pueden ver listas
                         .requestMatchers(HttpMethod.GET, "/api/lists/**").permitAll()
                         //Todos pueden registrarse

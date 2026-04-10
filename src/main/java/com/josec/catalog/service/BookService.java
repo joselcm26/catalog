@@ -13,11 +13,15 @@ import com.josec.catalog.model.User;
 import com.josec.catalog.repository.BookRepository;
 import com.josec.catalog.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Objects;
@@ -36,6 +40,8 @@ public class BookService {
 
     @Autowired
     private BookMapper bookMapper;
+
+
 
 
     // --- MÉTODOS PRINCIPALES ---
@@ -146,5 +152,20 @@ public class BookService {
         return bookPage.map(bookMapper::mapToDTO);
     }
 
+    // TODO public Page<BookResponseDTO> searchBooksByAuthor(String query, int page, int size) {}
 
+    /**
+     * Actualizar el cover del libro
+     * @param id del libro
+     * @param filename nombre del archivo
+     * @return libro actualizado en DTO
+     */
+    public BookResponseDTO updateCoverImage(int id, String filename){
+        Book book = bookRepository.findById(id)
+                .orElseThrow(() -> new BookNotFoundException("Book not found with ID: " + id));
+
+        book.setCoverImage(filename);
+        bookRepository.save(book);
+        return bookMapper.mapToDTO(book);
+    }
 }

@@ -24,8 +24,7 @@ public class Book {
     private String author;
     private Integer publicationYear;
     private String synopsis;
-
-    //TODO: overall rating - media de las valoraciones colocadas por los usuarios
+    private String coverImage; // Nombre del archivo o ruta parcial
 
     // RELACIONES CON TABLAS
 

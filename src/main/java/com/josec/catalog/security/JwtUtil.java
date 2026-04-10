@@ -30,10 +30,11 @@ public class JwtUtil {
      * @param username propietario del token
      * @return String token generado
      */
-    public String generateToken(String username, int userId) {
+    public String generateToken(String username, int userId, String role) {
         return Jwts.builder()
                 .setSubject(username) // A quién pertenece
                 .claim("userId", userId) // Claim con userId para incrustarlo
+                .claim("role", role) // Rol de usuario
                 .setIssuedAt(new Date()) // Cuándo se creó
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME)) // Cuándo caduca
                 .signWith(key, SignatureAlgorithm.HS256) // firma secreta
@@ -68,6 +69,21 @@ public class JwtUtil {
                 .parseClaimsJws(token)
                 .getBody()
                 .get("userId", Integer.class);
+    }
+
+    /**
+     * EXTRACTOR DE ROL DE USUARIO
+     *
+     * @param token de inicio de sesión
+     * @return Rol del usuario
+     */
+    public String extractRole(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(token)
+                .getBody()
+                .get("role", String.class);
     }
 
     /**
