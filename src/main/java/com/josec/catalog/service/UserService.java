@@ -2,6 +2,7 @@ package com.josec.catalog.service;
 
 import com.josec.catalog.dto.UserRequestDTO;
 import com.josec.catalog.dto.UserResponseDTO;
+import com.josec.catalog.dto.mappers.UserMapper;
 import com.josec.catalog.exception.EmailAlreadyExistsException;
 import com.josec.catalog.exception.UsernameAlreadyExistsException;
 import com.josec.catalog.model.User;
@@ -16,7 +17,7 @@ public class UserService {
     // - DEPENDENCIAS -
 
     @Autowired
-    private PasswordEncoder passwordEncoder;
+    private UserMapper userMapper;
 
     @Autowired
     private UserRepository userRepository; // Base de datos de usuarios
@@ -37,39 +38,10 @@ public class UserService {
         }
 
         // 3. Traducir, guardar y devolver
-        User user = mapToEntity(userRequestDTO);// Traducir
+        User user = userMapper.mapToEntity(userRequestDTO);// Traducir
         User savedUser = userRepository.save(user); // Guardar
-        return mapToDTO(savedUser); // Devolver traducido a DTO
+        return userMapper.mapToDTO(savedUser); // Devolver traducido a DTO
 
     }
 
-    // - MÉTODOS PRIVADOS -
-
-    /**
-     * Mapea objetos @UserRequestDTO en objetos @User
-     * @param userRequestDTO objeto DTO a convertir
-     * @return Objeto User
-     */
-    private User mapToEntity(UserRequestDTO userRequestDTO) {
-        User user = new User();
-        user.setUsername(userRequestDTO.getUsername());
-        user.setEmail(userRequestDTO.getEmail());
-
-        // Encriptamos la contraseña antes de guardarla en el objeto User
-        user.setPassword(passwordEncoder.encode(userRequestDTO.getPassword()));
-        return user;
-    }
-
-    /**
-     * Mapea objetos User en objetos @UserResponseDTO
-     * @param user objeto usuario a convertir
-     * @return objeto UserResponse convertido
-     */
-    private UserResponseDTO mapToDTO(User user) {
-        UserResponseDTO userResponseDTO = new UserResponseDTO();
-        userResponseDTO.setUsername(user.getUsername());
-        userResponseDTO.setEmail(user.getEmail());
-        userResponseDTO.setId(user.getId().longValue());
-        return userResponseDTO;
-    }
 }

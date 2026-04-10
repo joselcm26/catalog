@@ -11,6 +11,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 //Controlador de libros. Aquí se utiliza el HTTP.
 
 @RestController
@@ -61,5 +63,15 @@ public class BookController {
     @PutMapping("/{id}")
     public ResponseEntity<BookResponseDTO> putBook(@PathVariable int id, @Valid @RequestBody BookRequestDTO book ) {
         return ResponseEntity.ok(bookService.updateBook(id, book));
+    }
+
+    // -- BÚSQUEDA --
+    // GET /api/books/search?query=busqueda&page=0&size=10
+    @GetMapping("/search")
+    public ResponseEntity<Page<BookResponseDTO>> searchBooks(
+            @RequestParam String query,
+            @RequestParam(defaultValue = "0") int page,   //Página y tamaño por defecto
+            @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(bookService.searchBooksGlobal(query, page, size));
     }
 }

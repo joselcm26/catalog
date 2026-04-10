@@ -5,6 +5,7 @@ import com.josec.catalog.dto.BookRequestDTO;
 import com.josec.catalog.dto.BookResponseDTO;
 import com.josec.catalog.dto.ReviewRequestDTO;
 import com.josec.catalog.dto.ReviewResponseDTO;
+import com.josec.catalog.dto.mappers.BookMapper;
 import com.josec.catalog.exception.BookNotFoundException;
 import com.josec.catalog.model.Book;
 import com.josec.catalog.model.Review;
@@ -33,6 +34,9 @@ public class BookService {
     @Autowired
     private UserRepository userRepository; // Repo de usuarios
 
+    @Autowired
+    private BookMapper bookMapper;
+
 
     // --- MÉTODOS PRINCIPALES ---
 
@@ -44,15 +48,15 @@ public class BookService {
         Page<Book> bookPage = bookRepository.findAll(pageable);
 
         // 3. El objeto se puede mapear con .map() sin perder los metadatos
-        return bookPage.map(this::mapToDTO);
+        return bookPage.map(bookMapper::mapToDTO);
 
     }
 
     public BookResponseDTO createBook(BookRequestDTO requestDTO) {
        if (requestDTO != null) {
-           Book book = mapToEntity(requestDTO); //Traducir el DTO a entidad
+           Book book = bookMapper.mapToEntity(requestDTO); //Traducir el DTO a entidad
            Book savedBook = bookRepository.save(book);//Guardar en BD
-           return mapToDTO(savedBook);//Traducir a DTO para devolver
+           return bookMapper.mapToDTO(savedBook);//Traducir a DTO para devolver
        }
        throw new RuntimeException("Book could not be created");
     }
@@ -61,7 +65,7 @@ public class BookService {
     public BookResponseDTO getBookById(int id) {
         Book book =  bookRepository.findById(id)
                 .orElseThrow(() -> new BookNotFoundException(("No se encontró el libro con el ID: " + id)));
-        return mapToDTO(book);
+        return bookMapper.mapToDTO(book);
     }
 
     public BookResponseDTO updateBook(int id, BookRequestDTO requestDTO) {
@@ -76,7 +80,7 @@ public class BookService {
         existingBook.setSynopsis(requestDTO.getSynopsis());
 
         Book updatedBook = bookRepository.save(existingBook);
-        return mapToDTO(updatedBook);
+        return bookMapper.mapToDTO(updatedBook);
 
     }
 
@@ -119,78 +123,28 @@ public class BookService {
         // al guardar el libro, Spring Boot automáticamente guarda la reseña en la tabla 'reviews'.
         Book updatedBook = bookRepository.save(book);
 
-        return mapToDTO(updatedBook);
+        return bookMapper.mapToDTO(updatedBook);
     }
 
-    // --- MÉTODOS TRADUCTORES (MAPPERS) ---
+    // --- BÚSQUEDAS ---
 
     /**
-     * Traducción de DTO a entidad.
+     * Buscar libros en la base de datos global
      *
-     * @param dto a convertir
-     * @return Entidad @Book traducida
+     * @param query clave de búsqueda
+     * @return lista de libros si hay coincidencias
      */
-    private Book mapToEntity(BookRequestDTO dto) {
-        Book book = new Book();
-        book.setTitle(dto.getTitle());
-        book.setAuthor(dto.getAuthor());
-        book.setPublicationYear(dto.getPublicationYear());
-        book.setSynopsis(dto.getSynopsis());
+    public Page<BookResponseDTO> searchBooksGlobal(String query, int page, int size) {
 
-        //TODO: mapear reviews
+        // 1. Crear la paginación
+        Pageable pageable = PageRequest.of(page, size);
 
-        return book;
+        // 2. Hacer consulta paginada
+        Page<Book> bookPage = bookRepository.findByTitleContainingIgnoreCase(query, pageable);
+
+        // 3. Traducir a DTO
+        return bookPage.map(bookMapper::mapToDTO);
     }
 
-    /**
-     * Traduce un objeto @Book a un objeto BookResponseDTO. Además, calcula
-     * la nota media de las reviews.
-     *
-     * @param book a convertir a DTO
-     * @return DTO con nota media
-     */
-    private BookResponseDTO mapToDTO(Book book) {
 
-        BookResponseDTO dto = new BookResponseDTO();
-        dto.setId(book.getId().intValue()); // Asumo que en tu modelo Book tienes un getId() o la anotación @Data
-        dto.setTitle(book.getTitle());
-        dto.setAuthor(book.getAuthor());
-        dto.setPublicationYear(book.getPublicationYear());
-        dto.setSynopsis(book.getSynopsis());
-
-        // Traducimos la lista de reseñas (Entidades) a una lista de ReviewResponseDTO
-        if (book.getReviews() != null) {
-            List<ReviewResponseDTO> reviewDTOs = book.getReviews().stream().map(review -> {
-                ReviewResponseDTO reviewDTO = new ReviewResponseDTO();
-                reviewDTO.setId(review.getId().intValue());
-                reviewDTO.setRating(review.getRating());
-                reviewDTO.setComment(review.getComment());
-                reviewDTO.setUserId(review.getUser().getId().longValue());
-                reviewDTO.setUsername(review.getUser().getUsername());
-                return reviewDTO;
-            }).collect(Collectors.toList());
-
-            dto.setReviews(reviewDTOs);
-
-            // Calcular la media de las reviews del libro
-
-            //TODO: refactorizar a una clase a parte
-            //Cogemos las reseñas -> Extraemos solo la nota (mapToDouble)
-            // -> Calculamos la media (average) -> Si falla, devolvemos 0.0
-            double average = book.getReviews().stream()
-                            .mapToDouble(Review::getRating)
-                            .average()
-                            .orElse(0.0);
-
-            // Redondear a 1 decimal solamente y guardar en DTO
-            double roundedAverage = Math.round(average * 10.0) / 10.0;
-            dto.setAverageRating(roundedAverage);
-
-        }else{
-            // Libro sin reseñas
-            dto.setAverageRating(0.0);
-        }
-
-        return dto;
-    }
 }
