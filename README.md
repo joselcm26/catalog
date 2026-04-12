@@ -2,4 +2,4 @@
 
 
 
-Mini proyecto creado con la intención de crear una app como Letterboxd pero añadiendo nuevas características y más tipos de contenido.
+Proyecto personal creado con la intención de crear una app como Letterboxd pero añadiendo nuevas características y más tipos de contenido.
