@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -39,30 +40,35 @@ public class SecurityConfig {
                 ))
                 //Configuración de quién entra y quién no
                 .authorizeHttpRequests(auth -> auth
-                        //Todos pueden ver el catálogo de libros
-                        .requestMatchers(HttpMethod.GET, "/api/books/**").permitAll()
-                        //Crear, modificar, borrar libros y portadas solo ADMIN (el prefijo no se pone)
-                        .requestMatchers(HttpMethod.POST, "/api/books/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PATCH, "/api/books/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/books/**").hasRole("ADMIN")
-                        //Todos pueden ver listas
-                        .requestMatchers(HttpMethod.GET, "/api/lists/**").permitAll()
-                        //Todos pueden registrarse
-                        .requestMatchers(HttpMethod.POST, "/api/users").permitAll()
-                        //Todos podrán hacer login
-                        .requestMatchers("/api/auth/**").permitAll()
-                        //Logout requiere autenticación
-                        .requestMatchers("/api/auth/logout").authenticated()
-                        //Endpoint de errores
-                        .requestMatchers("/error").permitAll()
-                        // Consola
-                        .requestMatchers("/h2-console/**").permitAll()
-                        //CUALQUIER otra petición (crear libros, crear reseñas,...) requiere estar logueado
-                        .anyRequest().authenticated()
-                )
-                //Desactivar iframes para que funcione la consola
-                .headers(headers -> headers.
-                        frameOptions(frameOptionsConfig -> frameOptionsConfig.disable() ));
+                                // 1. RUTAS PÚBLICAS
+                                //Todos pueden ver las subidas
+                                .requestMatchers("/uploads/**").permitAll()
+                                //Todos podrán hacer login
+                                .requestMatchers("/api/auth/**").permitAll()
+                                //Endpoint de errores
+                                .requestMatchers("/error").permitAll()
+                                //Todos pueden ver el catálogo de libros
+                                .requestMatchers(HttpMethod.GET, "/api/books/**").permitAll()
+                                //Todos pueden ver listas
+                                .requestMatchers(HttpMethod.GET, "/api/lists/**").permitAll()
+                                //Todos pueden registrarse
+                                .requestMatchers(HttpMethod.POST, "/api/users").permitAll()
+//                        // Consola
+//                        .requestMatchers("/h2-console/**").permitAll()
+
+                                // 2. RUTAS CON AUTENTICACIÓN
+                                //Crear, modificar, borrar libros y portadas solo ADMIN (el prefijo no se pone)
+                                .requestMatchers(HttpMethod.POST, "/api/books/**").hasRole("ADMIN")
+                                .requestMatchers(HttpMethod.PATCH, "/api/books/**").hasRole("ADMIN")
+                                .requestMatchers(HttpMethod.DELETE, "/api/books/**").hasRole("ADMIN")
+                                //Logout requiere autenticación
+                                .requestMatchers("/api/auth/logout").authenticated()
+                                //CUALQUIER otra petición (crear libros, crear reseñas,...) requiere estar logueado
+                                .anyRequest().authenticated()
+                );
+        //Desactivar iframes para que funcione la consola
+//                .headers(headers -> headers.
+//                        frameOptions(frameOptionsConfig -> frameOptionsConfig.disable() ));
 
         // Ponemos nuestro filtro antes que el standard de Spring
         http.addFilterBefore(jwtFilter,
@@ -71,6 +77,11 @@ public class SecurityConfig {
         return http.build();
 
     }
-
+    @Bean
+    public WebSecurityCustomizer webSecurityCustomizer() {
+        // Le decimos a Spring Security que IGNORE por completo esta ruta.
+        // Ni filtros, ni JWT, ni nada. Vía libre total.
+        return (web) -> web.ignoring().requestMatchers("/uploads/covers/**");
+    }
 
 }

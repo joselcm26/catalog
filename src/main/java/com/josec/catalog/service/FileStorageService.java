@@ -68,7 +68,7 @@ public class FileStorageService {
 
         // 3. Generar el nombre único para el archivo (para evitar nombres iguales)
         // UUID - Clase para crear identificadores únicos
-        String newFileName = UUID.randomUUID().toString() + "." + fileExtension;
+        String newFileName = UUID.randomUUID().toString() + fileExtension;
         try {
             // 4. Montar la ruta final: "C:/.../uploads/covers/name.jpg"
             Path targetLocation = this.fileStorageLocation.resolve(newFileName);

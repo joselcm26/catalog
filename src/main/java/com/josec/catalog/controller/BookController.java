@@ -89,6 +89,7 @@ public class BookController {
         // 1. Guardar archivo en el disco duro y obtenemos su nombre
         String filename = fileStorageService.saveCoverImage(file);
 
+        // 2. Actualizar libro en la base de datos
         BookResponseDTO updatedBook = bookService.updateCoverImage(id, filename);
         return ResponseEntity.ok(updatedBook);
     }
