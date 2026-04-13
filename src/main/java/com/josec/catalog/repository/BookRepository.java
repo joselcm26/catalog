@@ -20,16 +20,20 @@ import java.util.List;
 public interface BookRepository extends JpaRepository<Book, Integer>{
 
     /**
-     * Buscar libros cuyo título contenga la palabra clave, sin distinguir mayúsculas o minúsculas
+     * Buscar libros cuyo título o autor contenga la palabra clave, sin distinguir mayúsculas o minúsculas
      *
      * @param title clave de la búsqueda
+     * @param author segunda clave de la búsqueda
+     * @param pageable paginación
      * @return lista de libros si se encuentran resultados
      */
-    Page<Book> findByTitleContainingIgnoreCase(String title, Pageable pageable);
+    Page<Book> findByTitleContainingIgnoreCaseOrAuthorContainingIgnoreCase(String title, String author, Pageable pageable);
+
 
     // Búsqueda cruzada usando JPQL
-    @Query("SELECT b FROM BookList bl JOIN bl.books b " +
-            "WHERE bl.id = :listId AND LOWER(b.title) LIKE LOWER(CONCAT('%', :query, '%'))")
+    @Query("SELECT b FROM BookList bl JOIN bl.books b WHERE bl.id = :listId " +
+            "AND (LOWER(b.title) LIKE LOWER(CONCAT('%', :query, '%')) " +
+            "OR LOWER(b.author) LIKE LOWER(CONCAT('%', :query, '%')))")
     List<Book> searchBooksInsideList(@Param("listId") int listId, @Param("query") String query);
 
 }

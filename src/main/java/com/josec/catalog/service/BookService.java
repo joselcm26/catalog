@@ -135,10 +135,12 @@ public class BookService {
     // --- BÚSQUEDAS ---
 
     /**
-     * Buscar libros en la base de datos global
+     * Buscar libros por TÍTULO en la base de datos global
      *
      * @param query clave de búsqueda
-     * @return lista de libros si hay coincidencias
+     * @param page página a devolver
+     * @param size tamaño de la página
+     * @return página con libros si hay coincidencias
      */
     public Page<BookResponseDTO> searchBooksGlobal(String query, int page, int size) {
 
@@ -146,13 +148,13 @@ public class BookService {
         Pageable pageable = PageRequest.of(page, size);
 
         // 2. Hacer consulta paginada
-        Page<Book> bookPage = bookRepository.findByTitleContainingIgnoreCase(query, pageable);
+        Page<Book> bookPage = bookRepository
+                .findByTitleContainingIgnoreCaseOrAuthorContainingIgnoreCase(query, query, pageable);
 
         // 3. Traducir a DTO
         return bookPage.map(bookMapper::mapToDTO);
     }
 
-    // TODO public Page<BookResponseDTO> searchBooksByAuthor(String query, int page, int size) {}
 
     /**
      * Actualizar el cover del libro
