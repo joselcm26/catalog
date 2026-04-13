@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
@@ -32,8 +33,10 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        // Desactivamos CSRF porque no usamos cookies de sesion, sino tokens
-        http.csrf(csrf -> csrf.disable())
+        // Desactivamos CSRF porque no usamos cookies de sesión, sino tokens
+        http
+                .cors(Customizer.withDefaults()) // Aplicar configuración de WebConfig para CORS
+                .csrf(csrf -> csrf.disable())
                 //Sin sesiones en memoria
                 .sessionManagement(session -> session.sessionCreationPolicy(
                         SessionCreationPolicy.STATELESS
@@ -53,6 +56,9 @@ public class SecurityConfig {
                                 .requestMatchers(HttpMethod.GET, "/api/lists/**").permitAll()
                                 //Todos pueden registrarse
                                 .requestMatchers(HttpMethod.POST, "/api/users").permitAll()
+                                //Permisos para Swagger
+                                // Rutas de Swagger/OpenAPI
+                                .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
 //                        // Consola
 //                        .requestMatchers("/h2-console/**").permitAll()
 
