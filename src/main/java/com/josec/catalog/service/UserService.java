@@ -5,7 +5,9 @@ import com.josec.catalog.dto.UserResponseDTO;
 import com.josec.catalog.dto.mappers.UserMapper;
 import com.josec.catalog.exception.EmailAlreadyExistsException;
 import com.josec.catalog.exception.UsernameAlreadyExistsException;
+import com.josec.catalog.model.ReadList;
 import com.josec.catalog.model.User;
+import com.josec.catalog.repository.ReadListRepository;
 import com.josec.catalog.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -21,6 +23,9 @@ public class UserService {
 
     @Autowired
     private UserRepository userRepository; // Base de datos de usuarios
+
+    @Autowired
+    private ReadListRepository readListRepository;
 
     // - MÉTODOS PRINCIPALES -
 
@@ -40,6 +45,13 @@ public class UserService {
         // 3. Traducir, guardar y devolver
         User user = userMapper.mapToEntity(userRequestDTO);// Traducir
         User savedUser = userRepository.save(user); // Guardar
+
+        //Crear su readlist
+
+        ReadList emptyReadList = new ReadList();
+        emptyReadList.setUser(savedUser);
+        readListRepository.save(emptyReadList);
+
         return userMapper.mapToDTO(savedUser); // Devolver traducido a DTO
 
     }
