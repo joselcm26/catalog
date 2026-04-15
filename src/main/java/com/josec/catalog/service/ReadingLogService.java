@@ -3,7 +3,9 @@ package com.josec.catalog.service;
 import com.josec.catalog.dto.ReadingLogRequestDTO;
 import com.josec.catalog.dto.ReadingLogResponseDTO;
 import com.josec.catalog.dto.mappers.ReadingLogMapper;
+import com.josec.catalog.exception.AccessDeniedException;
 import com.josec.catalog.exception.BookNotFoundException;
+import com.josec.catalog.exception.UserNotFoundException;
 import com.josec.catalog.model.Book;
 import com.josec.catalog.model.ReadList;
 import com.josec.catalog.model.ReadingLog;
@@ -42,7 +44,12 @@ public class ReadingLogService {
         Integer userId = (Integer) Objects
                 .requireNonNull(Objects.
                                 requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getDetails());
-        User user = userRepository.findById(userId.longValue()).orElseThrow();
+        User user = userRepository.findById(userId.longValue())
+                .orElseThrow(() -> new UserNotFoundException("User not found with id: " + userId));
+
+        if(!Objects.equals(user.getId(), request.getUserId())){
+            throw new AccessDeniedException("Access denied: only the owner can read this log");
+        }
 
         // 2. Buscar el libro
         Book book = bookRepository.findById(request.getBookId())

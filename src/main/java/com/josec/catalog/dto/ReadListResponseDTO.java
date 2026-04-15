@@ -10,5 +10,5 @@ public class ReadListResponseDTO {
 
     private Integer id;
     private Integer ownerId;
-    private List<Book> books;
+    private List<BookResponseDTO> books;
 }

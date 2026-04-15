@@ -11,6 +11,9 @@ import java.time.LocalDate;
 @Data
 public class ReadingLogRequestDTO {
 
+    @NotNull(message = "User ID cannot be null")
+    private Integer userId;
+
     @NotNull(message = "Book ID cannot be null")
     private Integer bookId;
 

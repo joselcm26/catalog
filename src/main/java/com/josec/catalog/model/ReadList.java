@@ -1,5 +1,6 @@
 package com.josec.catalog.model;
 
+import com.josec.catalog.security.Ownable;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -14,11 +15,14 @@ import java.util.List;
 @Setter
 @Entity
 @Table(name = "readlists")
-public class ReadList {
+public class ReadList implements Ownable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
+
+    @Column(nullable = false)
+    private boolean isPublic = false; // Nunca podrá ser público
 
     //Relación Uno a Uno (una lista de lectura es de un solo usuario)
     @OneToOne(fetch = FetchType.LAZY)

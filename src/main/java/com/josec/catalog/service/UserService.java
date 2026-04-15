@@ -49,7 +49,7 @@ public class UserService {
         //Crear su readlist
 
         ReadList emptyReadList = new ReadList();
-        emptyReadList.setUser(savedUser);
+        emptyReadList.setOwner(savedUser);
         readListRepository.save(emptyReadList);
 
         return userMapper.mapToDTO(savedUser); // Devolver traducido a DTO

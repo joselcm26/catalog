@@ -1,5 +1,6 @@
 package com.josec.catalog.model;
 
+import com.josec.catalog.security.Ownable;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -14,7 +15,7 @@ import java.util.List;
 @Setter
 @Entity
 @Table(name = "book_lists")
-public class BookList {
+public class BookList implements Ownable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

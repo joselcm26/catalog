@@ -29,4 +29,6 @@ public class ReadingLogMapper {
 
         return dto;
     }
+
+    //TODO - mapeador a entidad
 }
