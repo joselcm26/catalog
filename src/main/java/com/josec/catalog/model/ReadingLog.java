@@ -1,5 +1,6 @@
 package com.josec.catalog.model;
 
+import com.josec.catalog.security.Ownable;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -14,7 +15,7 @@ import java.time.LocalDateTime;
 @Setter
 @Entity
 @Table(name = "reading_logs")
-public class ReadingLog {
+public class ReadingLog implements Ownable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -23,7 +24,7 @@ public class ReadingLog {
     //Relación con el usuario (Dueño)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    private User owner;
 
     //Relación con el libro
     @ManyToOne(fetch = FetchType.LAZY)
@@ -37,6 +38,9 @@ public class ReadingLog {
     //Puntiación opcional del 1 al 5
     @Column(name = "rating")
     private Integer rating;
+    
+    @Column(nullable = false)
+    private boolean isPublic = false;
 
     //Comentario personal privado opcional
     @Column(name = "private_comment", columnDefinition = "TEXT")

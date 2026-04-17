@@ -64,6 +64,18 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(getErrors(ex));
     }
 
+    // 8. Reading log vacío
+    @ExceptionHandler(EmptyReadingLogException.class)
+    public ResponseEntity<Map<String, String>> handleBookNotFound(EmptyReadingLogException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(getErrors(ex));
+    }
+
+    // 9. Reading log no encontrado
+    @ExceptionHandler(ReadingLogNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleBookNotFound(ReadingLogNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(getErrors(ex));
+    }
+
     // -- Privados
 
     //Para evitar repetir código

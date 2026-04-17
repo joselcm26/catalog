@@ -3,9 +3,7 @@ package com.josec.catalog.service;
 import com.josec.catalog.dto.ReadingLogRequestDTO;
 import com.josec.catalog.dto.ReadingLogResponseDTO;
 import com.josec.catalog.dto.mappers.ReadingLogMapper;
-import com.josec.catalog.exception.AccessDeniedException;
-import com.josec.catalog.exception.BookNotFoundException;
-import com.josec.catalog.exception.UserNotFoundException;
+import com.josec.catalog.exception.*;
 import com.josec.catalog.model.Book;
 import com.josec.catalog.model.ReadList;
 import com.josec.catalog.model.ReadingLog;
@@ -14,11 +12,16 @@ import com.josec.catalog.repository.BookRepository;
 import com.josec.catalog.repository.ReadListRepository;
 import com.josec.catalog.repository.ReadingLogRepository;
 import com.josec.catalog.repository.UserRepository;
+import com.josec.catalog.security.PermissionValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -37,19 +40,32 @@ public class ReadingLogService {
     private ReadListRepository readListRepository;
     @Autowired
     private ReadingLogMapper readingLogMapper;
+    @Autowired
+    private PermissionValidator permissionValidator;
+
+    public List<ReadingLogResponseDTO> getMyReadingLogs() {
+        // 1. Extraer el Id de usuario
+        Integer userId = permissionValidator.whoIsLoggedIn();
+
+        // 2. Obtener su lista de logs y devolver
+        List<ReadingLog> log = readingLogRepository.findByUserIdOrderByReadDateDesc(userId);
+
+        if(!log.isEmpty()) {
+            return log.stream()
+                    .map(readingLogMapper::mapToDTO) // Llama a tu métödo automáticamente por cada elemento
+                    .toList();
+        }  else {
+            throw new EmptyReadingLogException("The read log for this user is empty");
+        }
+    }
 
     @Transactional
     public ReadingLogResponseDTO logBookAsRead(ReadingLogRequestDTO request){
         // 1. Extraer el Id de usuario
-        Integer userId = (Integer) Objects
-                .requireNonNull(Objects.
-                                requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getDetails());
-        User user = userRepository.findById(userId.longValue())
-                .orElseThrow(() -> new UserNotFoundException("User not found with id: " + userId));
+        Integer userId = permissionValidator.whoIsLoggedIn();
 
-        if(!Objects.equals(user.getId(), request.getUserId())){
-            throw new AccessDeniedException("Access denied: only the owner can read this log");
-        }
+        User user = userRepository.findById(userId.longValue())
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
         // 2. Buscar el libro
         Book book = bookRepository.findById(request.getBookId())
@@ -58,7 +74,7 @@ public class ReadingLogService {
         // 3. Crear el registro
         ReadingLog log = new ReadingLog();
         log.setBook(book);
-        log.setUser(user);
+        log.setOwner(user);
         log.setReadDate(request.getReadDate());
         log.setRating(request.getRating());
         log.setPrivateComment(request.getPrivateComment());
@@ -67,7 +83,7 @@ public class ReadingLogService {
 
         // 4. ELIMINAR DE READLIST (Si está)
         // Buscamos la readlist del usuario
-        Optional<ReadList> optionalReadList = Optional.ofNullable(readListRepository.findByOwnerId(user.getId()));
+        Optional<ReadList> optionalReadList = Optional.ofNullable(readListRepository.findByOwnerId(userId));
 
         if (optionalReadList.isPresent()) {
             ReadList readlist = optionalReadList.get();
@@ -81,5 +97,24 @@ public class ReadingLogService {
         // GUARDAR
         ReadingLog savedLog = readingLogRepository.save(log);
         return  readingLogMapper.mapToDTO(savedLog);
+    }
+
+
+    public void deleteReadingLog( int logId) {
+        // 1. Extraer el Id de usuario
+        Integer userId = permissionValidator.whoIsLoggedIn();
+
+        Optional<User> user = userRepository.findById(userId.longValue());
+
+        // 2. Buscar reading log
+        ReadingLog log = readingLogRepository.findById(logId)
+                .orElseThrow(() -> new ReadingLogNotFoundException("Reading log not found with ID: " + logId));
+
+        // 3. Comprobar autorización
+        permissionValidator.checkPermissions(log);
+
+        // 4. Borrar y devolver
+        readingLogRepository.delete(log);
+
     }
 }

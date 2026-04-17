@@ -69,7 +69,7 @@ public class PermissionValidator {
             loggedInUserId = (Integer) details;
         }
         if (loggedInUserId == null ) {
-            throw new UserNotFoundException("User not found.");
+            throw new UserNotFoundException("User not found or not logged in.");
         }else{
             return loggedInUserId;
         }

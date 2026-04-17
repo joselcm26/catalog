@@ -4,7 +4,6 @@ import com.josec.catalog.dto.ReadListRequestDTO;
 import com.josec.catalog.dto.ReadListResponseDTO;
 import com.josec.catalog.service.ReadListService;
 import jakarta.validation.Valid;
-import lombok.Locked;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
