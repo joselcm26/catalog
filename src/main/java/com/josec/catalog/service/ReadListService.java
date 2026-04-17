@@ -18,6 +18,7 @@ import com.josec.catalog.security.PermissionValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Objects;
 
@@ -36,79 +37,68 @@ public class ReadListService {
     @Autowired
     private ReadListMapper readListMapper;
     @Autowired
-    private UserRepository userRepository;
-    @Autowired
     private PermissionValidator permissionValidator;
     @Autowired
     private BookRepository bookRepository;
 
     // --- MÉTODOS ---
 
-    public ReadListResponseDTO getReadListById(ReadListRequestDTO request) {
-        // 1. Validar propietario
-        permissionValidator.checkPermissionByOwnerId(request.getOwnerId());
+    public ReadListResponseDTO getReadList() {
+        //1. Validar propietario
+        Integer loggedInUserId = permissionValidator.whoIsLoggedIn();
+        permissionValidator.checkPermissionByOwnerId(loggedInUserId);
 
         // 2. Buscar readlist
-        ReadList readList = readListRepository.findById(request.getId())
-                .orElseThrow(() -> new ReadListNotFoundException("ReadList not found with Id" + request.getId()));
+        ReadList readList = readListRepository.findByOwnerId(loggedInUserId);
+
 
         // 3. Mapear y devolver
         return readListMapper.mapToDTO(readList);
     }
-
-    public ReadListResponseDTO getReadListByOwnerId(ReadListRequestDTO request) {
+    @Transactional
+    public ReadListResponseDTO clearReadList() {
         //1. Validar propietario
-        permissionValidator.checkPermissionByOwnerId(request.getOwnerId());
-
-        //2. Buscar por el Id del propietario
-        ReadList readList =  readListRepository.findByOwnerId(request.getId());
-
-        //3. Mapear y devolver
-        return readListMapper.mapToDTO(readList);
-
-    }
-
-    public ReadListResponseDTO clearReadListById(ReadListRequestDTO request) {
-        //1. Validar propietario
-        permissionValidator.checkPermissionByOwnerId(request.getOwnerId());
+        Integer loggedInUserId = permissionValidator.whoIsLoggedIn();
+        permissionValidator.checkPermissionByOwnerId(loggedInUserId);
 
         // 2. Buscar readlist
-        ReadList readList = readListRepository.findById(request.getId())
-                .orElseThrow(() -> new ReadListNotFoundException("ReadList not found with Id" + request.getId()));
+        ReadList readList = readListRepository.findByOwnerId(loggedInUserId);
 
         //2. Limpiar lista
         readList.getBooks().clear();
         return readListMapper.mapToDTO(readList);
     }
 
-    public ReadListResponseDTO addBookToReadList(Integer bookId, ReadListRequestDTO request) {
+    @Transactional
+    public ReadListResponseDTO addBookToReadList(ReadListRequestDTO request) {
         //1. Validar propietario
-        permissionValidator.checkPermissionByOwnerId(request.getOwnerId());
+        Integer loggedInUserId = permissionValidator.whoIsLoggedIn();
+        permissionValidator.checkPermissionByOwnerId(loggedInUserId);
 
-        //2. Buscar readlist
-        ReadList readList = readListRepository.findById(request.getId())
-                .orElseThrow(() -> new ReadListNotFoundException("ReadList not found with Id" + request.getId()));
+        // 2. Buscar readlist
+        ReadList readList = readListRepository.findByOwnerId(loggedInUserId);
 
         //3. Buscar libro
-        Book book = bookRepository.findById(bookId)
-                .orElseThrow(() -> new BookNotFoundException("Book not found with Id" + bookId));
+        Book book = bookRepository.findById(request.getBookId())
+                .orElseThrow(() -> new BookNotFoundException("Book not found with Id" + request.getBookId()));
 
         //4. Añadir, mapear y devolver
         readList.addBook(book);
         return readListMapper.mapToDTO(readList);
     }
 
-    public ReadListResponseDTO removeBookFromReadList(Integer bookId, ReadListRequestDTO request) {
+    @Transactional
+    public ReadListResponseDTO removeBookFromReadList(ReadListRequestDTO request) {
         //1. Validar propietario
-        permissionValidator.checkPermissionByOwnerId(request.getOwnerId());
+        Integer loggedInUserId = permissionValidator.whoIsLoggedIn();
+        permissionValidator.checkPermissionByOwnerId(loggedInUserId);
 
-        //2. Buscar readlist
-        ReadList readList = readListRepository.findById(request.getId())
-                .orElseThrow(() -> new ReadListNotFoundException("ReadList not found with Id" + request.getId()));
+        // 2. Buscar readlist
+        ReadList readList = readListRepository.findByOwnerId(loggedInUserId);
 
         //3. Buscar libro
-        Book book = bookRepository.findById(bookId)
-                .orElseThrow(() -> new BookNotFoundException("Book not found with Id" + bookId));
+        Book book = bookRepository.findById(request.getBookId())
+                .orElseThrow(() -> new BookNotFoundException("Book not found with Id" + request.getBookId()));
 
         //4. Borrar libro, mapear y devolver
         readList.removeBook(book);

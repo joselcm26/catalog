@@ -6,11 +6,8 @@ import lombok.Data;
 @Data
 public class ReadListRequestDTO {
 
-    @NotNull(message = "ReadList Id cannot be null")
-    private Integer id;
-
-    @NotNull(message = "OwnerId cannot be null")
-    private Integer ownerId;
+    @NotNull(message = "Book Id cannot be null")
+    private Integer bookId;
 
 
 }

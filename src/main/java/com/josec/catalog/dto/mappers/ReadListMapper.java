@@ -19,8 +19,6 @@ public class ReadListMapper {
 
     public ReadListResponseDTO mapToDTO(ReadList readList) {
         ReadListResponseDTO dto = new ReadListResponseDTO();
-        dto.setId(readList.getId());
-        dto.setOwnerId(readList.getOwner().getId());
 
         // Mapear lista a DTO
         List<BookResponseDTO> books = readList.getBooks().stream().map(book -> {
@@ -29,14 +27,15 @@ public class ReadListMapper {
             return dtoBook;
         }).toList();
 
+        dto.setBooks(books);
         return dto;
     }
 
-    public ReadList mapToReadList(ReadListRequestDTO requestDTO) {
-        ReadList readList = new ReadList();
-        readList.setId(requestDTO.getId());
-
-        return  readList;
-
-    }
+//    public ReadList mapToReadList(ReadListRequestDTO requestDTO) {
+//        ReadList readList = new ReadList();
+//        readList.setId(requestDTO.getId());
+//
+//        return  readList;
+//
+//    }
 }

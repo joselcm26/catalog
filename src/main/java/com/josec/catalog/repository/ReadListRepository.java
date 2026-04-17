@@ -10,7 +10,5 @@ import java.util.List;
 @Repository
 public interface ReadListRepository extends JpaRepository<ReadList, Integer> {
 
-    ReadList findByUserId(Integer userId);
-
     ReadList findByOwnerId(Integer ownerId);
 }

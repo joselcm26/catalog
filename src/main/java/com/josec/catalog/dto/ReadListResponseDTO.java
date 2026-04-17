@@ -8,7 +8,5 @@ import java.util.List;
 @Data
 public class ReadListResponseDTO {
 
-    private Integer id;
-    private Integer ownerId;
     private List<BookResponseDTO> books;
 }

@@ -56,4 +56,22 @@ public class PermissionValidator {
             throw new AccessDeniedException("Access denied. You are not allowed to perform this action.");
         }
     }
+
+    /**
+     * Determina quien está loggeado
+     * @return Id del usuario
+     */
+    public Integer whoIsLoggedIn() {
+        Integer loggedInUserId = null;
+        Object details = Objects
+                .requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getDetails();
+        if (details instanceof Integer) {
+            loggedInUserId = (Integer) details;
+        }
+        if (loggedInUserId == null ) {
+            throw new UserNotFoundException("User not found.");
+        }else{
+            return loggedInUserId;
+        }
+    }
 }

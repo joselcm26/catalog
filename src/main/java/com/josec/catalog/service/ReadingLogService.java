@@ -66,8 +66,8 @@ public class ReadingLogService {
 
 
         // 4. ELIMINAR DE READLIST (Si está)
-        // Buscamos la readlist del usuario (asumiendo que tienes un findByUserId en el repositorio)
-        Optional<ReadList> optionalReadList = Optional.ofNullable(readListRepository.findByUserId(user.getId()));
+        // Buscamos la readlist del usuario
+        Optional<ReadList> optionalReadList = Optional.ofNullable(readListRepository.findByOwnerId(user.getId()));
 
         if (optionalReadList.isPresent()) {
             ReadList readlist = optionalReadList.get();
