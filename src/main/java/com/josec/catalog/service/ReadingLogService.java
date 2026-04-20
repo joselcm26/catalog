@@ -14,15 +14,13 @@ import com.josec.catalog.repository.ReadingLogRepository;
 import com.josec.catalog.repository.UserRepository;
 import com.josec.catalog.security.PermissionValidator;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 
-import java.util.ArrayList;
+
+
+
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -102,9 +100,7 @@ public class ReadingLogService {
 
     public void deleteReadingLog( int logId) {
         // 1. Extraer el Id de usuario
-        Integer userId = permissionValidator.whoIsLoggedIn();
-
-        Optional<User> user = userRepository.findById(userId.longValue());
+        permissionValidator.whoIsLoggedIn();
 
         // 2. Buscar reading log
         ReadingLog log = readingLogRepository.findById(logId)
