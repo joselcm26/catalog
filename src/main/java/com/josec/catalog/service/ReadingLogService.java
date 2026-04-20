@@ -46,7 +46,7 @@ public class ReadingLogService {
         Integer userId = permissionValidator.whoIsLoggedIn();
 
         // 2. Obtener su lista de logs y devolver
-        List<ReadingLog> log = readingLogRepository.findByUserIdOrderByReadDateDesc(userId);
+        List<ReadingLog> log = readingLogRepository.findByOwnerIdOrderByReadDateDesc(userId);
 
         if(!log.isEmpty()) {
             return log.stream()
@@ -98,7 +98,7 @@ public class ReadingLogService {
     }
 
 
-    public void deleteReadingLog( int logId) {
+    public void deleteReadingLog(int logId) {
         // 1. Extraer el Id de usuario
         permissionValidator.whoIsLoggedIn();
 
@@ -112,5 +112,37 @@ public class ReadingLogService {
         // 4. Borrar y devolver
         readingLogRepository.delete(log);
 
+    }
+
+    // -- GESTIÓN DE PAPELERA --
+
+    public List<ReadingLogResponseDTO> getMyTrash(){
+        Integer ownerId = permissionValidator.whoIsLoggedIn();
+
+        List<ReadingLog> log = readingLogRepository.findAllDeletedByUserId(ownerId);
+
+        if(!log.isEmpty()) {
+            return log.stream()
+                    .map(readingLogMapper::mapToDTO)
+                    .toList();
+        }
+        else {
+            throw new EmptyReadingLogException("The reading log trash for this user is empty");
+        }
+    }
+
+    @Transactional
+    public ReadingLogResponseDTO restoreReadingLog(int logId) {
+        // 1. Buscar en la papelera
+        ReadingLog log = readingLogRepository.findDeletedById(logId);
+
+        // 2. Validar al usuario
+        permissionValidator.checkPermissions(log);
+
+        // 3. Restaurar (poner fecha de borrado a null)
+        log.setDeletedAt(null);
+        ReadingLog restoredLog = readingLogRepository.save(log);
+
+        return  readingLogMapper.mapToDTO(restoredLog);
     }
 }

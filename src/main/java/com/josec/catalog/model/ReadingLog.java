@@ -4,6 +4,8 @@ import com.josec.catalog.security.Ownable;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -15,7 +17,11 @@ import java.time.LocalDateTime;
 @Setter
 @Entity
 @Table(name = "reading_logs")
-public class ReadingLog implements Ownable {
+// 1. Convierte repository.delete() en un UPDATE automático
+@SQLDelete(sql = "UPDATE reading_logs SET deleted_at = NOW() WHERE id = ?")
+// 2. Filtra automáticamente los borrados en todos los select
+@SQLRestriction("deleted_at IS NULL")
+public class ReadingLog extends SoftDeleteable implements Ownable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -23,7 +29,7 @@ public class ReadingLog implements Ownable {
 
     //Relación con el usuario (Dueño)
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "owner_id", nullable = false)
     private User owner;
 
     //Relación con el libro

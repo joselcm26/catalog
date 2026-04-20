@@ -39,9 +39,9 @@ public class BookListController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<BookListResponseDTO> deleteBookList(@PathVariable int id) {
-        BookListResponseDTO deletedBookList = bookListService.deleteBookList(id);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<?> deleteBookList(@PathVariable int id) {
+        bookListService.deleteBookList(id);
+        return ResponseEntity.ok("La lista ha sido enviada a la papelera");
     }
 
 
@@ -89,6 +89,18 @@ public class BookListController {
             @RequestParam String query) {
 
         return ResponseEntity.ok(bookListService.searchBooksInMyList(listId, query));
+    }
+
+    // --- PAPELERA ---
+
+    @GetMapping("/trash")
+    public ResponseEntity<List<BookListResponseDTO>> getTrash() {
+        return ResponseEntity.ok(bookListService.getMyTrash());
+    }
+
+    @PatchMapping("/trash/{id}/restore")
+    public ResponseEntity<?> restoreTrashItem(@PathVariable Integer id) {
+        return ResponseEntity.ok(bookListService.restoreBookList(id));
     }
 
 }

@@ -1,9 +1,6 @@
 package com.josec.catalog.service;
 
-import com.josec.catalog.dto.BookListRequestDTO;
-import com.josec.catalog.dto.BookListResponseDTO;
-import com.josec.catalog.dto.BookResponseDTO;
-import com.josec.catalog.dto.UserResponseDTO;
+import com.josec.catalog.dto.*;
 import com.josec.catalog.dto.mappers.BookListMapper;
 import com.josec.catalog.dto.mappers.BookMapper;
 import com.josec.catalog.exception.*;
@@ -13,10 +10,12 @@ import com.josec.catalog.model.User;
 import com.josec.catalog.repository.BookListRepository;
 import com.josec.catalog.repository.BookRepository;
 import com.josec.catalog.repository.UserRepository;
+import com.josec.catalog.security.PermissionValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 
 import java.util.List;
@@ -46,6 +45,9 @@ public class BookListService {
     @Autowired
     private BookListMapper bookListMapper;
 
+    @Autowired
+    private PermissionValidator permissionValidator;
+
     // --- Métodos principales ---
 
     /**
@@ -59,11 +61,11 @@ public class BookListService {
         BookList bookList = bookListMapper.mapToEntity(bookListRequestDTO);
 
         // 2. Leemos quién es el usuario logueado en este momento
-        Long loggedInUserId = (Long) Objects
-                .requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getDetails();
+        Integer loggedInUserId = permissionValidator.whoIsLoggedIn();
+
         User owner = null;
         if (loggedInUserId != null) {
-            owner = userRepository.findById(loggedInUserId)
+            owner = userRepository.findById(loggedInUserId.longValue())
                     .orElseThrow(() -> new RuntimeException("User not found: " + loggedInUserId));
         }
 
@@ -119,8 +121,7 @@ public class BookListService {
      */
     public List<BookListResponseDTO> getMyLists() {
         // 1. Sacar ID de usuario del token
-        Integer loggedInUserId = (Integer)Objects
-                .requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getDetails() ;
+        Integer loggedInUserId = permissionValidator.whoIsLoggedIn();
 
         //3. Buscar las listas del usuario
         List<BookList> userLists = bookListRepository.findByOwnerId(loggedInUserId);
@@ -136,7 +137,8 @@ public class BookListService {
      * @param id de la lista a eliminar
      * @return BookListResponseDTO lista eliminada
      */
-    public BookListResponseDTO deleteBookList(int id) {
+    @Transactional
+    public void deleteBookList(int id) {
         BookList bookList = bookListRepository.findById(id)
                 .orElseThrow(() -> new ListNotFoundException(("List not found with Id: " + id)));
 
@@ -144,7 +146,7 @@ public class BookListService {
         checkOwner(bookList);
 
         bookListRepository.delete(bookList);
-        return bookListMapper.mapToDTO(bookList);
+
     }
 
     /**
@@ -261,6 +263,38 @@ public class BookListService {
         list.removeIf(book -> book.getId() == bookId);
         bookListRepository.save(bookList);
         return bookListMapper.mapToDTO(bookList);
+    }
+
+    // -- GESTIÓN DE PAPELERA --
+
+    public List<BookListResponseDTO> getMyTrash(){
+        Integer ownerId = permissionValidator.whoIsLoggedIn();
+
+        List<BookList> bookList = bookListRepository.findAllDeletedByUserId(ownerId);
+
+        if(!bookList.isEmpty()) {
+            return bookList.stream()
+                    .map(bookListMapper::mapToDTO)
+                    .toList();
+        }
+        else {
+            throw new EmptyReadingLogException("The book list trash for this user is empty");
+        }
+    }
+
+    @Transactional
+    public BookListResponseDTO restoreBookList(int logId) {
+        // 1. Buscar en la papelera
+        BookList bookList = bookListRepository.findDeletedById(logId);
+
+        // 2. Validar al usuario
+        permissionValidator.checkPermissions(bookList);
+
+        // 3. Restaurar (poner fecha de borrado a null)
+        bookList.setDeletedAt(null);
+        BookList restoredBookList = bookListRepository.save(bookList);
+
+        return  bookListMapper.mapToDTO(restoredBookList);
     }
 
 

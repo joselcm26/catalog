@@ -47,4 +47,16 @@ public class ReadingLogController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
 
     }
+
+    // -- PAPELERA ---
+
+    @GetMapping("/trash")
+    public ResponseEntity<List<ReadingLogResponseDTO>> getTrash() {
+        return ResponseEntity.ok(readingLogService.getMyTrash());
+    }
+
+    @PatchMapping("/trash/{id}/restore")
+    public ResponseEntity<?> restoreTrashItem(@PathVariable Integer id) {
+        return ResponseEntity.ok(readingLogService.restoreReadingLog(id));
+    }
 }

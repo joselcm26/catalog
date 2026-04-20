@@ -59,6 +59,7 @@ public class PermissionValidator {
 
     /**
      * Determina quien está loggeado
+     *
      * @return Id del usuario
      */
     public Integer whoIsLoggedIn() {
