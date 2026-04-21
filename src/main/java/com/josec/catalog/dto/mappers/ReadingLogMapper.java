@@ -26,6 +26,7 @@ public class ReadingLogMapper {
         dto.setRating(readingLog.getRating());
         dto.setPrivateComment(readingLog.getPrivateComment());
         dto.setCreatedAt(readingLog.getCreatedAt());
+        dto.setDeletedAt(readingLog.getDeletedAt());
 
         return dto;
     }

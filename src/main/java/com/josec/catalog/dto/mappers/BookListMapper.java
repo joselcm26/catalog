@@ -25,6 +25,7 @@ public class BookListMapper {
         dto.setName(bookList.getName());
         dto.setDescription(bookList.getDescription());
         dto.setPublic(bookList.isPublic());
+        dto.setDeletedAt(bookList.getDeletedAt());
 
         // 1. Mapear el dueño
         if(bookList.getOwner() != null) {

@@ -135,7 +135,6 @@ public class BookListService {
      * Para eliminar una lista con el Id especificado
      *
      * @param id de la lista a eliminar
-     * @return BookListResponseDTO lista eliminada
      */
     @Transactional
     public void deleteBookList(int id) {

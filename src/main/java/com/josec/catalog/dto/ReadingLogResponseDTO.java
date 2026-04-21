@@ -14,4 +14,5 @@ public class ReadingLogResponseDTO {
     private Integer rating;
     private String privateComment;
     private LocalDateTime createdAt;
+    private LocalDateTime deletedAt;
 }
