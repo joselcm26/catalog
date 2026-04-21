@@ -18,14 +18,26 @@ public class WebConfig implements WebMvcConfigurer {
     @Value("${file.upload-dir:uploads/covers}")
     private String uploadDir;
 
+    @Value("${file.upload.profile-dir:uploads/profile}")
+    private String profileUploadDir;
+
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        // 1. Paths
         Path path = Paths.get(uploadDir);
+        Path profilePath = Paths.get(profileUploadDir);
+
+        // 2. Absolute paths
         String absolutePath = path.toFile().getAbsolutePath();
+        String profileAbsolutePath = profilePath.toFile().getAbsolutePath();
 
         // Si la petición empieza por /uploads/**, busca en la carpeta física
         registry.addResourceHandler("/uploads/covers/**")
                 .addResourceLocations("file:" + absolutePath + "/");
+
+        // Si la petición empieza por /uploads/**, busca en la carpeta física
+        registry.addResourceHandler("/uploads/profile/**")
+                .addResourceLocations("file:" + profileAbsolutePath + "/");
 
     }
 

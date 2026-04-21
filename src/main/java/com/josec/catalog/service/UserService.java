@@ -1,17 +1,26 @@
 package com.josec.catalog.service;
 
+import com.josec.catalog.dto.BookResponseDTO;
+import com.josec.catalog.dto.UserProfileUpdateRequestDTO;
 import com.josec.catalog.dto.UserRequestDTO;
 import com.josec.catalog.dto.UserResponseDTO;
 import com.josec.catalog.dto.mappers.UserMapper;
+import com.josec.catalog.exception.BookNotFoundException;
 import com.josec.catalog.exception.EmailAlreadyExistsException;
+import com.josec.catalog.exception.UserNotFoundException;
 import com.josec.catalog.exception.UsernameAlreadyExistsException;
+import com.josec.catalog.model.Book;
 import com.josec.catalog.model.ReadList;
 import com.josec.catalog.model.User;
 import com.josec.catalog.repository.ReadListRepository;
 import com.josec.catalog.repository.UserRepository;
+import com.josec.catalog.security.PermissionValidator;
+import com.josec.catalog.util.UpdateUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 @Service
 public class UserService {
@@ -27,7 +36,26 @@ public class UserService {
     @Autowired
     private ReadListRepository readListRepository;
 
+    @Autowired
+    private PermissionValidator permissionValidator;
+
+
     // - MÉTODOS PRINCIPALES -
+
+    public UserResponseDTO getMyUserInfo(){
+
+        // 1. Quién está loggeado
+        Integer loggedUserId = permissionValidator.whoIsLoggedIn();
+
+        // 2. Buscar los datos
+        User user = userRepository.findById(loggedUserId.longValue())
+                .orElseThrow(() -> new UserNotFoundException("User not found with id " + loggedUserId));
+
+        // 3. Mapear y devolver
+
+        return userMapper.mapToDTO(user);
+
+    }
 
     public UserResponseDTO registerUser(UserRequestDTO userRequestDTO) {
 
@@ -54,6 +82,31 @@ public class UserService {
 
         return userMapper.mapToDTO(savedUser); // Devolver traducido a DTO
 
+    }
+
+    public UserResponseDTO updateUser(Integer userId, UserProfileUpdateRequestDTO requestDTO) {
+
+        // 1. Obtener entidad usuario
+        User user = userRepository.findById(userId.longValue())
+                .orElseThrow(() -> new UserNotFoundException("User not found with Id: " + userId));
+
+        // 2. Modificar los datos
+
+        UpdateUtil.copyNonNullProperties(requestDTO, user);
+
+        // 3. Guardar, mapear y devolver
+        userRepository.save(user);
+        return userMapper.mapToDTO(user);
+
+    }
+
+    public UserResponseDTO updateCoverImage(int id, String filename){
+        User user = userRepository.findById((long)id)
+                .orElseThrow(() -> new BookNotFoundException("Book not found with ID: " + id));
+
+        user.setProfileImage(filename);
+        userRepository.save(user);
+        return userMapper.mapToDTO(user);
     }
 
 }
