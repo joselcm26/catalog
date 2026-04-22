@@ -6,6 +6,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -74,6 +75,14 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ReadingLogNotFoundException.class)
     public ResponseEntity<Map<String, String>> handleBookNotFound(ReadingLogNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(getErrors(ex));
+    }
+
+    // Atrapa específicamente el error de límite de tamaño
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<String> handleMaxSizeException(MaxUploadSizeExceededException exc) {
+        // Devolvemos un 413 (Payload Too Large) en lugar de un 500
+        return ResponseEntity.status(HttpStatus.CONTENT_TOO_LARGE)
+                .body("The file size is too large. Maximum size allowed is 5MB.");
     }
 
     // -- Privados
