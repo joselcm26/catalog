@@ -1,35 +1,15 @@
 package com.josec.catalog.dto.mappers;
 
+import com.josec.catalog.dto.ReadingLogRequestDTO;
 import com.josec.catalog.dto.ReadingLogResponseDTO;
 import com.josec.catalog.model.ReadingLog;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.mapstruct.Mapper;
 
-@Component
-public class ReadingLogMapper {
+// Con uses le decimos que utilice ese mapper si lo necesita
+@Mapper(componentModel = "spring", uses = {BookMapper.class})
+public interface ReadingLogMapper {
 
-    @Autowired
-    private BookMapper bookMapper;
+    ReadingLogResponseDTO toDTO(ReadingLog readingLog);
 
-    /**
-     * Mapeador a DTO
-     *
-     * @param readingLog a mapear
-     * @return DTO de respuesta (incluye BookResposeDTO anidado)
-     */
-    public ReadingLogResponseDTO mapToDTO(ReadingLog readingLog) {
-        ReadingLogResponseDTO dto = new ReadingLogResponseDTO();
-
-        dto.setId(readingLog.getId());
-        dto.setBook(bookMapper.mapToDTO(readingLog.getBook())); //Anidamiento de DTO
-        dto.setReadDate(readingLog.getReadDate());
-        dto.setRating(readingLog.getRating());
-        dto.setPrivateComment(readingLog.getPrivateComment());
-        dto.setCreatedAt(readingLog.getCreatedAt());
-        dto.setDeletedAt(readingLog.getDeletedAt());
-
-        return dto;
-    }
-
-    //TODO - mapeador a entidad
+    ReadingLog toEntity(ReadingLogRequestDTO readingLogRequestDTO);
 }

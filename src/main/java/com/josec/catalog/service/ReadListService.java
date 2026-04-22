@@ -1,26 +1,17 @@
 package com.josec.catalog.service;
 
-import com.josec.catalog.dto.BookResponseDTO;
 import com.josec.catalog.dto.ReadListRequestDTO;
 import com.josec.catalog.dto.ReadListResponseDTO;
 import com.josec.catalog.dto.mappers.ReadListMapper;
-import com.josec.catalog.exception.AccessDeniedException;
 import com.josec.catalog.exception.BookNotFoundException;
-import com.josec.catalog.exception.ReadListNotFoundException;
-import com.josec.catalog.exception.UserNotFoundException;
 import com.josec.catalog.model.Book;
 import com.josec.catalog.model.ReadList;
-import com.josec.catalog.model.User;
 import com.josec.catalog.repository.BookRepository;
 import com.josec.catalog.repository.ReadListRepository;
-import com.josec.catalog.repository.UserRepository;
 import com.josec.catalog.security.PermissionValidator;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Objects;
 
 /**
  * Servicio para las listas de lectura del usuario.
@@ -53,7 +44,7 @@ public class ReadListService {
 
 
         // 3. Mapear y devolver
-        return readListMapper.mapToDTO(readList);
+        return readListMapper.toDTO(readList);
     }
     @Transactional
     public ReadListResponseDTO clearReadList() {
@@ -66,7 +57,7 @@ public class ReadListService {
 
         //2. Limpiar lista
         readList.getBooks().clear();
-        return readListMapper.mapToDTO(readList);
+        return readListMapper.toDTO(readList);
     }
 
     @Transactional
@@ -84,7 +75,7 @@ public class ReadListService {
 
         //4. Añadir, mapear y devolver
         readList.addBook(book);
-        return readListMapper.mapToDTO(readList);
+        return readListMapper.toDTO(readList);
     }
 
     @Transactional
@@ -102,7 +93,7 @@ public class ReadListService {
 
         //4. Borrar libro, mapear y devolver
         readList.removeBook(book);
-        return readListMapper.mapToDTO(readList);
+        return readListMapper.toDTO(readList);
     }
 
 }

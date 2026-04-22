@@ -1,6 +1,5 @@
 package com.josec.catalog.service;
 
-import com.josec.catalog.dto.BookResponseDTO;
 import com.josec.catalog.dto.UserProfileUpdateRequestDTO;
 import com.josec.catalog.dto.UserRequestDTO;
 import com.josec.catalog.dto.UserResponseDTO;
@@ -9,7 +8,6 @@ import com.josec.catalog.exception.BookNotFoundException;
 import com.josec.catalog.exception.EmailAlreadyExistsException;
 import com.josec.catalog.exception.UserNotFoundException;
 import com.josec.catalog.exception.UsernameAlreadyExistsException;
-import com.josec.catalog.model.Book;
 import com.josec.catalog.model.ReadList;
 import com.josec.catalog.model.User;
 import com.josec.catalog.repository.ReadListRepository;
@@ -17,10 +15,7 @@ import com.josec.catalog.repository.UserRepository;
 import com.josec.catalog.security.PermissionValidator;
 import com.josec.catalog.util.UpdateUtil;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import java.util.Optional;
 
 @Service
 public class UserService {
@@ -53,7 +48,7 @@ public class UserService {
 
         // 3. Mapear y devolver
 
-        return userMapper.mapToDTO(user);
+        return userMapper.toDTO(user);
 
     }
 
@@ -71,7 +66,7 @@ public class UserService {
         }
 
         // 3. Traducir, guardar y devolver
-        User user = userMapper.mapToEntity(userRequestDTO);// Traducir
+        User user = userMapper.toEntity(userRequestDTO);// Traducir
         User savedUser = userRepository.save(user); // Guardar
 
         //Crear su readlist
@@ -80,7 +75,7 @@ public class UserService {
         emptyReadList.setOwner(savedUser);
         readListRepository.save(emptyReadList);
 
-        return userMapper.mapToDTO(savedUser); // Devolver traducido a DTO
+        return userMapper.toDTO(savedUser); // Devolver traducido a DTO
 
     }
 
@@ -92,11 +87,11 @@ public class UserService {
 
         // 2. Modificar los datos
 
-        UpdateUtil.copyNonNullProperties(requestDTO, user);
+        userMapper.updateEntityFromDto(requestDTO, user);
 
         // 3. Guardar, mapear y devolver
         userRepository.save(user);
-        return userMapper.mapToDTO(user);
+        return userMapper.toDTO(user);
 
     }
 
@@ -106,7 +101,7 @@ public class UserService {
 
         user.setProfileImage(filename);
         userRepository.save(user);
-        return userMapper.mapToDTO(user);
+        return userMapper.toDTO(user);
     }
 
 }

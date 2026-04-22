@@ -4,7 +4,6 @@ package com.josec.catalog.service;
 import com.josec.catalog.dto.BookRequestDTO;
 import com.josec.catalog.dto.BookResponseDTO;
 import com.josec.catalog.dto.ReviewRequestDTO;
-import com.josec.catalog.dto.ReviewResponseDTO;
 import com.josec.catalog.dto.mappers.BookMapper;
 import com.josec.catalog.exception.BookNotFoundException;
 import com.josec.catalog.model.Book;
@@ -13,19 +12,13 @@ import com.josec.catalog.model.User;
 import com.josec.catalog.repository.BookRepository;
 import com.josec.catalog.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 @Service // Le indicamos a Spring que esta es nuestra capa de lógica de negocio
 public class BookService {
@@ -54,15 +47,15 @@ public class BookService {
         Page<Book> bookPage = bookRepository.findAll(pageable);
 
         // 3. El objeto se puede mapear con .map() sin perder los metadatos
-        return bookPage.map(bookMapper::mapToDTO);
+        return bookPage.map(bookMapper::toDTO);
 
     }
 
     public BookResponseDTO createBook(BookRequestDTO requestDTO) {
        if (requestDTO != null) {
-           Book book = bookMapper.mapToEntity(requestDTO); //Traducir el DTO a entidad
+           Book book = bookMapper.toEntity(requestDTO); //Traducir el DTO a entidad
            Book savedBook = bookRepository.save(book);//Guardar en BD
-           return bookMapper.mapToDTO(savedBook);//Traducir a DTO para devolver
+           return bookMapper.toDTO(savedBook);//Traducir a DTO para devolver
        }
        throw new RuntimeException("Book could not be created");
     }
@@ -71,7 +64,7 @@ public class BookService {
     public BookResponseDTO getBookById(int id) {
         Book book =  bookRepository.findById(id)
                 .orElseThrow(() -> new BookNotFoundException(("No se encontró el libro con el ID: " + id)));
-        return bookMapper.mapToDTO(book);
+        return bookMapper.toDTO(book);
     }
 
     public BookResponseDTO updateBook(int id, BookRequestDTO requestDTO) {
@@ -86,7 +79,7 @@ public class BookService {
         existingBook.setSynopsis(requestDTO.getSynopsis());
 
         Book updatedBook = bookRepository.save(existingBook);
-        return bookMapper.mapToDTO(updatedBook);
+        return bookMapper.toDTO(updatedBook);
 
     }
 
@@ -129,7 +122,7 @@ public class BookService {
         // al guardar el libro, Spring Boot automáticamente guarda la reseña en la tabla 'reviews'.
         Book updatedBook = bookRepository.save(book);
 
-        return bookMapper.mapToDTO(updatedBook);
+        return bookMapper.toDTO(updatedBook);
     }
 
     // --- BÚSQUEDAS ---
@@ -152,7 +145,7 @@ public class BookService {
                 .findByTitleContainingIgnoreCaseOrAuthorContainingIgnoreCase(query, query, pageable);
 
         // 3. Traducir a DTO
-        return bookPage.map(bookMapper::mapToDTO);
+        return bookPage.map(bookMapper::toDTO);
     }
 
 
@@ -168,6 +161,6 @@ public class BookService {
 
         book.setCoverImage(filename);
         bookRepository.save(book);
-        return bookMapper.mapToDTO(book);
+        return bookMapper.toDTO(book);
     }
 }

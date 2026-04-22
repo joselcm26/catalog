@@ -8,45 +8,36 @@ import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValuePropertyMappingStrategy;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Component;
 
-@Component
-public class UserMapper {
-
-    @Autowired
-    PasswordEncoder passwordEncoder;
+/**
+ * Mapper para los usuarios
+ */
+@Mapper(componentModel = "spring")
+public interface UserMapper {
 
     /**
-     * Mapea objetos @UserRequestDTO en objetos @User
-     * @param userRequestDTO objeto DTO a convertir
-     * @return Objeto User
+     * Mapeo estándar de Entidad a DTO
+     *
+     * @param user entidad a mapear
+     * @return UserResponseDTO
      */
-    public User mapToEntity(UserRequestDTO userRequestDTO) {
-        User user = new User();
-        user.setUsername(userRequestDTO.getUsername());
-        user.setEmail(userRequestDTO.getEmail());
-
-        // Encriptamos la contraseña antes de guardarla en el objeto User
-        user.setPassword(passwordEncoder.encode(userRequestDTO.getPassword()));
-        return user;
-    }
-
+    UserResponseDTO toDTO(User user);
 
     /**
-     * Mapea objetos User en objetos @UserResponseDTO
-     * @param user objeto usuario a convertir
-     * @return objeto UserResponse convertido
+     *  Mapeo a entidad
+     *
+     * @param userRequestDTO DTO a mapear
+     * @return entidad User mapeada
      */
-    public UserResponseDTO mapToDTO(User user) {
-        UserResponseDTO dto = new UserResponseDTO();
-        dto.setUsername(user.getUsername());
-        dto.setEmail(user.getEmail());
-        dto.setId(user.getId().longValue());
+    User toEntity(UserRequestDTO userRequestDTO);
 
-        return dto;
-    }
-
+    /**
+     * / Copia los datos del DTO a la entidad ignorando los nulos
+     *
+     * @param dto petición con los datos nuevos
+     * @param entity entidad User a modificar
+     */
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    void updateEntityFromDto(UserProfileUpdateRequestDTO dto, @MappingTarget User entity);
 
 }

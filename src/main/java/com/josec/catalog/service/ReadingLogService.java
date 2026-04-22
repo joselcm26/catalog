@@ -50,7 +50,7 @@ public class ReadingLogService {
 
         if(!log.isEmpty()) {
             return log.stream()
-                    .map(readingLogMapper::mapToDTO) // Llama a tu métödo automáticamente por cada elemento
+                    .map(readingLogMapper::toDTO) // Llama a tu métödo automáticamente por cada elemento
                     .toList();
         }  else {
             throw new EmptyReadingLogException("The read log for this user is empty");
@@ -94,7 +94,7 @@ public class ReadingLogService {
 
         // GUARDAR
         ReadingLog savedLog = readingLogRepository.save(log);
-        return  readingLogMapper.mapToDTO(savedLog);
+        return  readingLogMapper.toDTO(savedLog);
     }
 
 
@@ -123,7 +123,7 @@ public class ReadingLogService {
 
         if(!log.isEmpty()) {
             return log.stream()
-                    .map(readingLogMapper::mapToDTO)
+                    .map(readingLogMapper::toDTO)
                     .toList();
         }
         else {
@@ -143,6 +143,6 @@ public class ReadingLogService {
         log.setDeletedAt(null);
         ReadingLog restoredLog = readingLogRepository.save(log);
 
-        return  readingLogMapper.mapToDTO(restoredLog);
+        return  readingLogMapper.toDTO(restoredLog);
     }
 }

@@ -58,7 +58,7 @@ public class BookListService {
      */
     public BookListResponseDTO createList(BookListRequestDTO bookListRequestDTO) {
         // 1. Traducir los datos básicos
-        BookList bookList = bookListMapper.mapToEntity(bookListRequestDTO);
+        BookList bookList = bookListMapper.toEntity(bookListRequestDTO);
 
         // 2. Leemos quién es el usuario logueado en este momento
         Integer loggedInUserId = permissionValidator.whoIsLoggedIn();
@@ -72,7 +72,7 @@ public class BookListService {
         // 3. Asignamos al creador como dueño de la lista antes de guardar
         bookList.setOwner(owner);
         bookListRepository.save(bookList);
-        return bookListMapper.mapToDTO(bookList);
+        return bookListMapper.toDTO(bookList);
     }
 
     /**
@@ -96,7 +96,7 @@ public class BookListService {
             }
         }
 
-        return bookListMapper.mapToDTO(bookList);
+        return bookListMapper.toDTO(bookList);
     }
 
     public List<BookResponseDTO> searchBooksInMyList(int listId, String query) {
@@ -111,7 +111,7 @@ public class BookListService {
         List<Book> foundBooks = bookRepository.searchBooksInsideList(listId, query);
 
         // 4. Devolver los DTOs
-        return foundBooks.stream().map(bookMapper::mapToDTO).collect(Collectors.toList());
+        return foundBooks.stream().map(bookMapper::toDTO).collect(Collectors.toList());
     }
 
     /**
@@ -127,7 +127,7 @@ public class BookListService {
         List<BookList> userLists = bookListRepository.findByOwnerId(loggedInUserId);
 
         return userLists.stream()
-                .map(bookListMapper::mapToDTO)
+                .map(bookListMapper::toDTO)
                 .collect(Collectors.toList());
     }
 
@@ -176,7 +176,7 @@ public class BookListService {
         List<Book> list = bookList.getBooks();
         list.add(book);
         bookListRepository.save(bookList);
-        return bookListMapper.mapToDTO(bookList);
+        return bookListMapper.toDTO(bookList);
     }
 
     public BookListResponseDTO addCollaboratorToList(int listId, int userId) {
@@ -211,7 +211,7 @@ public class BookListService {
 
         collaborators.add(user);
         bookListRepository.save(bookList);
-        return bookListMapper.mapToDTO(bookList);
+        return bookListMapper.toDTO(bookList);
     }
 
     public BookListResponseDTO deleteCollaboratorFromList(int listId, int userId) {
@@ -239,7 +239,7 @@ public class BookListService {
 
         collaborators.remove(user);
         bookListRepository.save(bookList);
-        return bookListMapper.mapToDTO(bookList);
+        return bookListMapper.toDTO(bookList);
     }
 
     /**
@@ -261,7 +261,7 @@ public class BookListService {
         List<Book> list = bookList.getBooks();
         list.removeIf(book -> book.getId() == bookId);
         bookListRepository.save(bookList);
-        return bookListMapper.mapToDTO(bookList);
+        return bookListMapper.toDTO(bookList);
     }
 
     // -- GESTIÓN DE PAPELERA --
@@ -273,7 +273,7 @@ public class BookListService {
 
         if(!bookList.isEmpty()) {
             return bookList.stream()
-                    .map(bookListMapper::mapToDTO)
+                    .map(bookListMapper::toDTO)
                     .toList();
         }
         else {
@@ -293,7 +293,7 @@ public class BookListService {
         bookList.setDeletedAt(null);
         BookList restoredBookList = bookListRepository.save(bookList);
 
-        return  bookListMapper.mapToDTO(restoredBookList);
+        return  bookListMapper.toDTO(restoredBookList);
     }
 
 
