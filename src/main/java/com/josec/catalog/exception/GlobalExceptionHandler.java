@@ -85,6 +85,16 @@ public class GlobalExceptionHandler {
                 .body("The file size is too large. Maximum size allowed is 5MB.");
     }
 
+    @ExceptionHandler(InvalidPasswordException.class)
+    public ResponseEntity<Map<String, String>> handleBookNotFound(InvalidPasswordException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(getErrors(ex));
+    }
+
+    @ExceptionHandler(InvalidCredentialsException.class)
+    public ResponseEntity<Map<String, String>> handleBookNotFound(InvalidCredentialsException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(getErrors(ex));
+    }
+
     // -- Privados
 
     //Para evitar repetir código
