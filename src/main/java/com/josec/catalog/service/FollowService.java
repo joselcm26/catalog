@@ -1,5 +1,7 @@
 package com.josec.catalog.service;
 
+import com.josec.catalog.dto.FollowConnectionResponseDTO;
+import com.josec.catalog.dto.mappers.FollowConnectionMapper;
 import com.josec.catalog.exception.UserNotFoundException;
 import com.josec.catalog.model.FollowConnection;
 import com.josec.catalog.model.User;
@@ -8,8 +10,14 @@ import com.josec.catalog.repository.FollowConnectionRepository;
 import com.josec.catalog.repository.UserRepository;
 import com.josec.catalog.security.PermissionValidator;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Servicio para gestionar solicitudes de seguimiento
@@ -22,6 +30,8 @@ public class FollowService {
     private UserRepository userRepository;
     @Autowired
     private PermissionValidator permissionValidator;
+    @Autowired
+    private FollowConnectionMapper followConnectionMapper;
 
     /**
      * Enviar solicitud de seguimiento al usuario objetivo.
@@ -128,6 +138,44 @@ public class FollowService {
         }
 
         followRepository.delete(connection);
+
+    }
+
+    /**
+     * Obtener lista de seguidores del usuario logeado
+     *
+     * @return List<FollowConnectionResponseDTO> followers
+     */
+    public List<FollowConnectionResponseDTO> getMyFollowers(){
+        // 1. Quien está logeado
+        Integer myId = permissionValidator.whoIsLoggedIn();
+
+        // 2. Obtener lista de seguidores
+        List<FollowConnection> followers = followRepository.findByFollowedIdAndStatus(myId, FollowStatus.ACCEPTED);
+
+        // 3. Mapear
+
+        return followers.stream()
+                .map(followConnection -> followConnectionMapper.toDTO(followConnection)).toList();
+
+    }
+
+    /**
+     * Obtener lista de usuarios seguidos por el usuario logeado
+     *
+     * @return List<FollowConnectionResponseDTO> followed
+     */
+    public List<FollowConnectionResponseDTO> getMyFollowedUsers(){
+        // 1. Quien está logeado
+        Integer myId = permissionValidator.whoIsLoggedIn();
+
+        // 2. Obtener lista de seguidores
+        List<FollowConnection> followers = followRepository.findByFollowerIdAndStatus(myId, FollowStatus.ACCEPTED);
+
+        // 3. Mapear
+
+        return followers.stream()
+                .map(followConnection -> followConnectionMapper.toDTO(followConnection)).toList();
 
     }
 }

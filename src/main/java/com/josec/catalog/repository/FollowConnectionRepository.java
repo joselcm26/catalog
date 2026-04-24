@@ -17,10 +17,22 @@ public interface FollowConnectionRepository extends JpaRepository<FollowConnecti
     // 2. Buscar una conexión concreta
     Optional<FollowConnection> findByFollowerIdAndFollowedId(Integer followerId, Integer followedId);
 
-    // 3. Ver MIS seguidores (Aceptados)
+    /**
+     * Ver MIS seguidores
+     *
+     * @param followedId El usuario que lo solicita
+     * @param status estado de las solicitudes (ACEPTADO o PENDIENTE)
+     * @return Lista de conexiones de seguimiento
+     */
     List<FollowConnection> findByFollowedIdAndStatus(Integer followedId, FollowStatus status);
 
-    // 4. Ver a quién SIGO (Aceptados)
+    /**
+     * Ver a quién SIGO
+     *
+     * @param followerId seguidor que mira a quién sigue
+     * @param status estado de las solicitudes (ACEPTADO o PENDIENTE)
+     * @return Lista de usuarios seguidos por el usuario
+     */
     List<FollowConnection> findByFollowerIdAndStatus(Integer followerId, FollowStatus status);
 
 }
