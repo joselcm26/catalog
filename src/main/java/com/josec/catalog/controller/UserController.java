@@ -1,5 +1,6 @@
 package com.josec.catalog.controller;
 
+import com.josec.catalog.dto.ChangePasswordRequestDTO;
 import com.josec.catalog.dto.UserProfileUpdateRequestDTO;
 import com.josec.catalog.dto.UserRequestDTO;
 import com.josec.catalog.dto.UserResponseDTO;
@@ -65,5 +66,10 @@ public class UserController {
         UserResponseDTO updatedUser = userService.updateCoverImage(loggedUserId, filename);
         return ResponseEntity.ok(updatedUser);
 
+    }
+
+    @PatchMapping("/my/password")
+    public ResponseEntity<String> changeMyPassword(@Valid @RequestBody ChangePasswordRequestDTO requestDTO) {
+        return ResponseEntity.ok(userService.changePassword(requestDTO));
     }
 }

@@ -1,13 +1,11 @@
 package com.josec.catalog.service;
 
+import com.josec.catalog.dto.ChangePasswordRequestDTO;
 import com.josec.catalog.dto.UserProfileUpdateRequestDTO;
 import com.josec.catalog.dto.UserRequestDTO;
 import com.josec.catalog.dto.UserResponseDTO;
 import com.josec.catalog.dto.mappers.UserMapper;
-import com.josec.catalog.exception.BookNotFoundException;
-import com.josec.catalog.exception.EmailAlreadyExistsException;
-import com.josec.catalog.exception.UserNotFoundException;
-import com.josec.catalog.exception.UsernameAlreadyExistsException;
+import com.josec.catalog.exception.*;
 import com.josec.catalog.model.ReadList;
 import com.josec.catalog.model.User;
 import com.josec.catalog.repository.ReadListRepository;
@@ -15,6 +13,7 @@ import com.josec.catalog.repository.UserRepository;
 import com.josec.catalog.security.PermissionValidator;
 import com.josec.catalog.util.UpdateUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -33,6 +32,9 @@ public class UserService {
 
     @Autowired
     private PermissionValidator permissionValidator;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
 
     // - MÉTODOS PRINCIPALES -
@@ -102,6 +104,29 @@ public class UserService {
         user.setProfileImage(filename);
         userRepository.save(user);
         return userMapper.toDTO(user);
+    }
+
+    public String changePassword(ChangePasswordRequestDTO request){
+        // 1. Comprobar usuario logeado
+        Integer userId = permissionValidator.whoIsLoggedIn();
+        User user = userRepository.findById(userId.longValue())
+                .orElseThrow(() -> new UserNotFoundException("User not found with Id " + userId));
+
+        // 2. Comprobar contraseña antigua
+        if(!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
+            throw new InvalidPasswordException("Old password doesn't match");
+        }
+        // 3. Comprobar que no esté poniendo exactamente la misma contraseña
+        if(passwordEncoder.matches(request.getNewPassword(), user.getPassword())) {
+            throw new InvalidPasswordException("New password cannot be the equal to the old password");
+        }
+
+        // 4. Encriptar nueva contraseña y guardar
+        String newEncryptedPassword = passwordEncoder.encode(request.getNewPassword());
+        user.setPassword(newEncryptedPassword);
+        userRepository.save(user);
+
+        return "La contraseña ha sido cambiada correctamente";
     }
 
 }
