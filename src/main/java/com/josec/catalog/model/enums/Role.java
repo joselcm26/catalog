@@ -1,4 +1,4 @@
-package com.josec.catalog.model;
+package com.josec.catalog.model.enums;
 
 public enum Role {
     USER,

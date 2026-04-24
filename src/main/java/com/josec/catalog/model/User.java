@@ -1,12 +1,12 @@
 package com.josec.catalog.model;
 
+import com.josec.catalog.model.enums.Role;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 @Getter
@@ -57,6 +57,10 @@ public class User {
 
     @Column(name = "profile_image")
     private String profileImage;
+
+    //Por defecto el perfil será público
+    @Column(name = "is_private_profile")
+    private boolean isPrivateProfile = false;
 
 
     //-- RELACIONES CON TABLAS --

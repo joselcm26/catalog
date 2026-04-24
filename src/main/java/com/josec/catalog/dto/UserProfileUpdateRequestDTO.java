@@ -1,8 +1,6 @@
 package com.josec.catalog.dto;
 
-import jakarta.validation.constraints.Past;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import lombok.Data;
 import lombok.Singular;
 
@@ -35,5 +33,7 @@ public class UserProfileUpdateRequestDTO {
 
     @Size(max = 100, message = "Country cannot be larger than 100 characters")
     private String country;
+
+    private boolean isPrivateProfile;
 
 }
