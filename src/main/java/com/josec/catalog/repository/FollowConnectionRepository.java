@@ -11,14 +11,16 @@ import java.util.Optional;
 @Repository
 public interface FollowConnectionRepository extends JpaRepository<FollowConnection, Integer> {
 
-    boolean existByFollowerIdAndFollowedId(Integer followerId, Integer followedId);
+    // 1. Buscar si existe la relación
+    boolean existsByFollowerIdAndFollowedId(Integer followerId, Integer followedId);
 
-    Optional<FollowConnection> findByFollowerAndFollowedId(Integer followerId, Integer followedId);
+    // 2. Buscar una conexión concreta
+    Optional<FollowConnection> findByFollowerIdAndFollowedId(Integer followerId, Integer followedId);
 
-    //Ver MIS seguidores (seguidores aceptados)
-    List<FollowConnection> findByFollowedAndStatus(Integer followedId, FollowStatus status);
+    // 3. Ver MIS seguidores (Aceptados)
+    List<FollowConnection> findByFollowedIdAndStatus(Integer followedId, FollowStatus status);
 
-    //Ver a quien sigo (aceptados)
-    List<FollowConnection> fingByFollowerIdAndStatus(Integer followerId, FollowStatus status);
+    // 4. Ver a quién SIGO (Aceptados)
+    List<FollowConnection> findByFollowerIdAndStatus(Integer followerId, FollowStatus status);
 
 }

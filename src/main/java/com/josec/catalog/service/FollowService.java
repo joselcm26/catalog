@@ -1,6 +1,5 @@
 package com.josec.catalog.service;
 
-import com.josec.catalog.dto.UserProfileUpdateRequestDTO;
 import com.josec.catalog.exception.UserNotFoundException;
 import com.josec.catalog.model.FollowConnection;
 import com.josec.catalog.model.User;
@@ -47,7 +46,7 @@ public class FollowService {
                 .orElseThrow(() -> new UserNotFoundException("User not found with id: " + targetUserID));
 
         // 3. Comprobar si ya lo sigue, o si hay una solicitud pendiente
-        if (followRepository.existByFollowerIdAndFollowedId(myId, targetUserID)) {
+        if (followRepository.existsByFollowerIdAndFollowedId(myId, targetUserID)) {
             throw new RuntimeException("You already followed this user");
         }
 
@@ -78,7 +77,7 @@ public class FollowService {
         Integer myId = permissionValidator.whoIsLoggedIn();
 
         // 2. Buscar conexion
-        FollowConnection connection = followRepository.findByFollowerAndFollowedId(myId, followedId)
+        FollowConnection connection = followRepository.findByFollowerIdAndFollowedId(myId, followedId)
                 .orElseThrow(() -> new RuntimeException("Connection not found with user: " + followedId));
 
         // 3. Eliminar
@@ -96,7 +95,7 @@ public class FollowService {
         Integer myId = permissionValidator.whoIsLoggedIn();
 
         // 2. Buscar conexión donde el logeado es el seguido
-        FollowConnection connection = followRepository.findByFollowerAndFollowedId(followerId, myId)
+        FollowConnection connection = followRepository.findByFollowerIdAndFollowedId(followerId, myId)
                 .orElseThrow(() -> new RuntimeException("Follow request not found"));
 
         // 3. Comprobar si ya está aceptada
@@ -120,7 +119,7 @@ public class FollowService {
         Integer myId = permissionValidator.whoIsLoggedIn();
 
         // 2. Buscar conexión donde el logeado es el seguido
-        FollowConnection connection = followRepository.findByFollowerAndFollowedId(followerId, myId)
+        FollowConnection connection = followRepository.findByFollowerIdAndFollowedId(followerId, myId)
                 .orElseThrow(() -> new RuntimeException("Follow request not found"));
 
         // 3. Comprobar si ya está aceptada

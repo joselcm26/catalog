@@ -28,13 +28,13 @@ public class FollowConnectionController {
         return ResponseEntity.ok("Unfollowing operation completed successfully.");
     }
 
-    @PatchMapping("/users/my/requests/{followerId/accept")
+    @PatchMapping("/users/my/requests/{followerId}/accept")
     public ResponseEntity<String> acceptRequest(@PathVariable int followerId){
         followService.acceptFollowRequest(followerId);
         return ResponseEntity.ok("Follow request accepted.");
     }
-    
-    @DeleteMapping("/users/my/requests/{followerId/reject")
+
+    @DeleteMapping("/users/my/requests/{followerId}/reject")
     public ResponseEntity<String> rejectRequest(@PathVariable int followerId){
         followService.rejectFollowRequest(followerId);
         return ResponseEntity.ok("Follow request rejected.");
