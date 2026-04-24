@@ -18,6 +18,6 @@ public class UserResponseDTO {
     private String city;
     private String province;
     private String country;
-    private String profileImageUrl;
+    private String profileImage;
 
 }

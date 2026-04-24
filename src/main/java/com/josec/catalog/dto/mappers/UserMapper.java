@@ -4,15 +4,12 @@ import com.josec.catalog.dto.UserProfileUpdateRequestDTO;
 import com.josec.catalog.dto.UserRequestDTO;
 import com.josec.catalog.dto.UserResponseDTO;
 import com.josec.catalog.model.User;
-import org.mapstruct.BeanMapping;
-import org.mapstruct.Mapper;
-import org.mapstruct.MappingTarget;
-import org.mapstruct.NullValuePropertyMappingStrategy;
+import org.mapstruct.*;
 
 /**
  * Mapper para los usuarios
  */
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface UserMapper {
 
     /**
