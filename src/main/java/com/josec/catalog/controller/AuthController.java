@@ -42,10 +42,16 @@ public class AuthController {
         }
 
         // 3. Si tôdo es correcto, generamos el token
-        String token = jwtUtil.generateToken(user.getUsername(), user.getId());
+        String token = jwtUtil.generateToken(user.getUsername(), user.getId(), user.getRole().toString());
 
         // 4. Devolver al usuario
         return ResponseEntity.ok(new AuthResponseDTO(token));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout() {
+        // Devolver un 200 ok al front-end para que proceda a borrar el token de sesión.
+        return ResponseEntity.ok("Successfully logged out. Please delete the token on the client side.");
     }
 
 }

@@ -1,13 +1,20 @@
 package com.josec.catalog.service;
 
+import com.josec.catalog.dto.UserProfileUpdateRequestDTO;
 import com.josec.catalog.dto.UserRequestDTO;
 import com.josec.catalog.dto.UserResponseDTO;
+import com.josec.catalog.dto.mappers.UserMapper;
+import com.josec.catalog.exception.BookNotFoundException;
 import com.josec.catalog.exception.EmailAlreadyExistsException;
+import com.josec.catalog.exception.UserNotFoundException;
 import com.josec.catalog.exception.UsernameAlreadyExistsException;
+import com.josec.catalog.model.ReadList;
 import com.josec.catalog.model.User;
+import com.josec.catalog.repository.ReadListRepository;
 import com.josec.catalog.repository.UserRepository;
+import com.josec.catalog.security.PermissionValidator;
+import com.josec.catalog.util.UpdateUtil;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -16,12 +23,34 @@ public class UserService {
     // - DEPENDENCIAS -
 
     @Autowired
-    private PasswordEncoder passwordEncoder;
+    private UserMapper userMapper;
 
     @Autowired
     private UserRepository userRepository; // Base de datos de usuarios
 
+    @Autowired
+    private ReadListRepository readListRepository;
+
+    @Autowired
+    private PermissionValidator permissionValidator;
+
+
     // - MÉTODOS PRINCIPALES -
+
+    public UserResponseDTO getMyUserInfo(){
+
+        // 1. Quién está loggeado
+        Integer loggedUserId = permissionValidator.whoIsLoggedIn();
+
+        // 2. Buscar los datos
+        User user = userRepository.findById(loggedUserId.longValue())
+                .orElseThrow(() -> new UserNotFoundException("User not found with id " + loggedUserId));
+
+        // 3. Mapear y devolver
+
+        return userMapper.toDTO(user);
+
+    }
 
     public UserResponseDTO registerUser(UserRequestDTO userRequestDTO) {
 
@@ -37,39 +66,42 @@ public class UserService {
         }
 
         // 3. Traducir, guardar y devolver
-        User user = mapToEntity(userRequestDTO);// Traducir
+        User user = userMapper.toEntity(userRequestDTO);// Traducir
         User savedUser = userRepository.save(user); // Guardar
-        return mapToDTO(savedUser); // Devolver traducido a DTO
+
+        //Crear su readlist
+
+        ReadList emptyReadList = new ReadList();
+        emptyReadList.setOwner(savedUser);
+        readListRepository.save(emptyReadList);
+
+        return userMapper.toDTO(savedUser); // Devolver traducido a DTO
 
     }
 
-    // - MÉTODOS PRIVADOS -
+    public UserResponseDTO updateUser(Integer userId, UserProfileUpdateRequestDTO requestDTO) {
 
-    /**
-     * Mapea objetos @UserRequestDTO en objetos @User
-     * @param userRequestDTO objeto DTO a convertir
-     * @return Objeto User
-     */
-    private User mapToEntity(UserRequestDTO userRequestDTO) {
-        User user = new User();
-        user.setUsername(userRequestDTO.getUsername());
-        user.setEmail(userRequestDTO.getEmail());
+        // 1. Obtener entidad usuario
+        User user = userRepository.findById(userId.longValue())
+                .orElseThrow(() -> new UserNotFoundException("User not found with Id: " + userId));
 
-        // Encriptamos la contraseña antes de guardarla en el objeto User
-        user.setPassword(passwordEncoder.encode(userRequestDTO.getPassword()));
-        return user;
+        // 2. Modificar los datos
+
+        userMapper.updateEntityFromDto(requestDTO, user);
+
+        // 3. Guardar, mapear y devolver
+        userRepository.save(user);
+        return userMapper.toDTO(user);
+
     }
 
-    /**
-     * Mapea objetos User en objetos @UserResponseDTO
-     * @param user objeto usuario a convertir
-     * @return objeto UserResponse convertido
-     */
-    private UserResponseDTO mapToDTO(User user) {
-        UserResponseDTO userResponseDTO = new UserResponseDTO();
-        userResponseDTO.setUsername(user.getUsername());
-        userResponseDTO.setEmail(user.getEmail());
-        userResponseDTO.setId(user.getId().longValue());
-        return userResponseDTO;
+    public UserResponseDTO updateCoverImage(int id, String filename){
+        User user = userRepository.findById((long)id)
+                .orElseThrow(() -> new BookNotFoundException("Book not found with ID: " + id));
+
+        user.setProfileImage(filename);
+        userRepository.save(user);
+        return userMapper.toDTO(user);
     }
+
 }

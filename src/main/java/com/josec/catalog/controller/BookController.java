@@ -4,12 +4,17 @@ import com.josec.catalog.dto.BookRequestDTO;
 import com.josec.catalog.dto.BookResponseDTO;
 import com.josec.catalog.dto.ReviewRequestDTO;
 import com.josec.catalog.service.BookService;
+import com.josec.catalog.service.FileStorageService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 //Controlador de libros. Aquí se utiliza el HTTP.
 
@@ -19,6 +24,9 @@ public class BookController {
 
     @Autowired
     private BookService bookService; //Inyección de repositorio para poder usarlo
+
+    @Autowired
+    private FileStorageService fileStorageService;
 
     @GetMapping // GET HTTP
     public ResponseEntity<Page<BookResponseDTO>> findAll(
@@ -61,5 +69,28 @@ public class BookController {
     @PutMapping("/{id}")
     public ResponseEntity<BookResponseDTO> putBook(@PathVariable int id, @Valid @RequestBody BookRequestDTO book ) {
         return ResponseEntity.ok(bookService.updateBook(id, book));
+    }
+
+    // -- BÚSQUEDA --
+    // GET /api/books/search?query=busqueda&page=0&size=10
+    @GetMapping("/search")
+    public ResponseEntity<Page<BookResponseDTO>> searchBooks(
+            @RequestParam String query,
+            @RequestParam(defaultValue = "0") int page,   //Página y tamaño por defecto
+            @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(bookService.searchBooksGlobal(query, page, size));
+    }
+
+    @PostMapping(value = "/{id}/cover", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<BookResponseDTO> uploadCoverImage(
+            @PathVariable int id,
+            @RequestParam("file") MultipartFile file
+    ) {
+        // 1. Guardar archivo en el disco duro y obtenemos su nombre
+        String filename = fileStorageService.saveImage(file, FileStorageService.ImageType.COVER);
+
+        // 2. Actualizar libro en la base de datos
+        BookResponseDTO updatedBook = bookService.updateCoverImage(id, filename);
+        return ResponseEntity.ok(updatedBook);
     }
 }
