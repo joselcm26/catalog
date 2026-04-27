@@ -161,6 +161,24 @@ public class FollowService {
     }
 
     /**
+     * Obtener lista de peticiones de seguimiento (solo perfiles privados)
+     *
+     * @return List<FollowConnectionResponseDTO> pending followers
+     */
+    public List<FollowConnectionResponseDTO> getMyPendingRequests(){
+        // 1. Quien está logeado
+        Integer myId = permissionValidator.whoIsLoggedIn();
+
+        // 2. Obtener lista de seguidores
+        List<FollowConnection> followers = followRepository.findByFollowedIdAndStatus(myId, FollowStatus.PENDING);
+
+        // 3. Mapear
+
+        return followers.stream()
+                .map(followConnection -> followConnectionMapper.toDTO(followConnection)).toList();
+    }
+
+    /**
      * Obtener lista de usuarios seguidos por el usuario logeado
      *
      * @return List<FollowConnectionResponseDTO> followed

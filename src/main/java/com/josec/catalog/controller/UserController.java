@@ -1,9 +1,6 @@
 package com.josec.catalog.controller;
 
-import com.josec.catalog.dto.ChangePasswordRequestDTO;
-import com.josec.catalog.dto.UserProfileUpdateRequestDTO;
-import com.josec.catalog.dto.UserRequestDTO;
-import com.josec.catalog.dto.UserResponseDTO;
+import com.josec.catalog.dto.*;
 import com.josec.catalog.model.User;
 import com.josec.catalog.security.PermissionValidator;
 import com.josec.catalog.service.FileStorageService;
@@ -71,5 +68,11 @@ public class UserController {
     @PatchMapping("/my/password")
     public ResponseEntity<String> changeMyPassword(@Valid @RequestBody ChangePasswordRequestDTO requestDTO) {
         return ResponseEntity.ok(userService.changePassword(requestDTO));
+    }
+
+    @PatchMapping("/my/privacy")
+    public ResponseEntity<String> changePrivacy(@Valid @RequestBody PrivacyChangeDTO requestDTO) {
+        userService.changePrivacy(requestDTO.isPrivateProfile());
+        return ResponseEntity.ok("Privacy has been successfully changed.");
     }
 }

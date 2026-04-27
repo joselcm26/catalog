@@ -129,4 +129,27 @@ public class UserService {
         return "La contraseña ha sido cambiada correctamente";
     }
 
+    /**
+     * Cambia la privacidad del perfil de público a privado y viceversa.
+     *
+     * @param privacy true o false
+     */
+    public void changePrivacy(boolean privacy){
+        // 1. Comprobar usuario
+        Integer userId = permissionValidator.whoIsLoggedIn();
+        User user = userRepository.findById(userId.longValue())
+                .orElseThrow(() -> new UserNotFoundException("User not found with Id " + userId));
+
+        // 2. Cambiar privacidad
+        System.out.println("New privacy: " + privacy + "Old privacy" + user.isPrivateProfile());
+        if(privacy && user.isPrivateProfile()){
+            throw new RuntimeException("Your profile is already private");
+        }else if(!privacy && !user.isPrivateProfile()){
+            throw new RuntimeException("Your profile is already public");
+        }else{
+            user.setPrivateProfile(privacy);
+        }
+        userRepository.save(user);
+    }
+
 }
