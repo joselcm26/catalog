@@ -10,10 +10,10 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
-@Table(name = "reading_log_likes", uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"user_id", "reading_log_id"})
+@Table(name = "media_log_likes", uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"user_id", "media_log_id"})
 })
-public class ReadingLogLike {
+public class MediaLogLike {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -23,6 +23,6 @@ public class ReadingLogLike {
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "reading_log_id", nullable = false)
-    private ReadingLog readingLog;
+    @JoinColumn(name = "media_log_id", nullable = false)
+    private MediaLog mediaLog;
 }

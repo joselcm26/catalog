@@ -27,8 +27,8 @@ public class Comment {
     User author;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "reading_log_id", nullable = false)
-    private ReadingLog readingLog;
+    @JoinColumn(name = "media_log_id", nullable = false)
+    private MediaLog mediaLog;
 
     private LocalDateTime creationDate;
 
