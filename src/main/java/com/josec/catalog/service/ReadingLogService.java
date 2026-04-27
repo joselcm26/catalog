@@ -14,6 +14,10 @@ import com.josec.catalog.repository.ReadingLogRepository;
 import com.josec.catalog.repository.UserRepository;
 import com.josec.catalog.security.PermissionValidator;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,21 +45,56 @@ public class ReadingLogService {
     @Autowired
     private PermissionValidator permissionValidator;
 
-    public List<ReadingLogResponseDTO> getMyReadingLogs() {
+
+    // -- FEEDS --
+
+    public Page<ReadingLogResponseDTO> getMyDiary(int page, int size) {
         // 1. Extraer el Id de usuario
         Integer userId = permissionValidator.whoIsLoggedIn();
 
         // 2. Obtener su lista de logs y devolver
-        List<ReadingLog> log = readingLogRepository.findMyDiary(userId);
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
 
-        if(!log.isEmpty()) {
-            return log.stream()
-                    .map(readingLogMapper::toDTO) // Llama a tu métödo automáticamente por cada elemento
-                    .toList();
+        Page<ReadingLog> logPage = readingLogRepository.findMyDiary(userId, pageable);
+
+        if(!logPage.isEmpty()) {
+            return logPage.map(readingLogMapper::toDTO); // Mapear
         }  else {
             throw new EmptyReadingLogException("The read log for this user is empty");
         }
     }
+
+    public Page<ReadingLogResponseDTO> getMyHomeFeed(int page, int size) {
+        // 1. Extraer el Id de usuario
+        Integer userId = permissionValidator.whoIsLoggedIn();
+
+        // 2. Obtener su lista de logs y devolver
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+
+        Page<ReadingLog> logPage = readingLogRepository.findHomeFeed(userId, pageable);
+
+        if(!logPage.isEmpty()) {
+            return logPage.map(readingLogMapper::toDTO); // Mapear
+        }  else {
+            throw new EmptyReadingLogException("The home feed for this user is empty");
+        }
+    }
+
+    public Page<ReadingLogResponseDTO> getExploreFeed(int page, int size) {
+
+        // Obtener su lista de logs y devolver
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+
+        Page<ReadingLog> logPage = readingLogRepository.findExploreFeed(pageable);
+
+        if(!logPage.isEmpty()) {
+            return logPage.map(readingLogMapper::toDTO); // Mapear
+        }  else {
+            throw new EmptyReadingLogException("The explore feed is empty");
+        }
+    }
+
+    // -- LOGS --
 
     @Transactional
     public ReadingLogResponseDTO logBookAsRead(ReadingLogRequestDTO request){
@@ -97,7 +136,7 @@ public class ReadingLogService {
         return  readingLogMapper.toDTO(savedLog);
     }
 
-
+    @Transactional
     public void deleteReadingLog(int logId) {
         // 1. Extraer el Id de usuario
         permissionValidator.whoIsLoggedIn();

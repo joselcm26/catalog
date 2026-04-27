@@ -1,6 +1,8 @@
 package com.josec.catalog.repository;
 
 import com.josec.catalog.model.ReadingLog;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -29,10 +31,13 @@ public interface ReadingLogRepository extends JpaRepository<ReadingLog, Integer>
     @Query(value = "DELETE FROM reading_logs WHERE deleted_at <= :threshold", nativeQuery = true)
     void deletePermanentlyOlderThan(@Param("threshold") LocalDateTime threshold);
 
+    //TODO: CAMBIAR A PAGINACIÓN.
+
     // 3. Ver toda la papelera del usuario
     @Query(value = "SELECT * FROM reading_logs WHERE owner_id = :ownerId AND deleted_at IS NOT NULL", nativeQuery = true)
     List<ReadingLog> findAllDeletedByUserId(@Param("ownerId") Integer ownerId);
 
+    // TODO: CAMBIAR A SLICE PARA SCROLL INFINITO (?)
     /**
      * Query para el log del usuario.
      * Muestra todas sus entradas.
@@ -42,8 +47,8 @@ public interface ReadingLogRepository extends JpaRepository<ReadingLog, Integer>
      */
     // MI DIARIO (Personal)
     // El dueño ve absolutamente todos sus registros.
-    @Query("SELECT rl FROM ReadingLog rl WHERE rl.user.id = :ownerId ORDER BY rl.readDate DESC")
-    List<ReadingLog> findMyDiary(@Param("ownerId") Integer ownerId);
+    @Query("SELECT rl FROM ReadingLog rl WHERE rl.user.id = :ownerId")
+    Page<ReadingLog> findMyDiary(@Param("ownerId") Integer ownerId, Pageable pageable);
     
     /**
      * Query para el feed social.
@@ -58,9 +63,8 @@ public interface ReadingLogRepository extends JpaRepository<ReadingLog, Integer>
             "(rl.user.id = :ownerId OR EXISTS (" +
             "    SELECT fc FROM FollowConnection fc WHERE fc.follower.id = :ownerId " +
             "    AND fc.followed.id = rl.user.id AND fc.status = com.josec.catalog.model.enums.FollowStatus.ACCEPTED" +
-            ")) " +
-            "ORDER BY rl.createdAt DESC")
-    List<ReadingLog> findHomeFeed(@Param("ownerId") Integer ownerId);
+            ")) ")
+    Page<ReadingLog> findHomeFeed(@Param("ownerId") Integer ownerId, Pageable pageable);
 
     /**
      * Query para el feed de explorar
@@ -71,8 +75,7 @@ public interface ReadingLogRepository extends JpaRepository<ReadingLog, Integer>
     // EXPLORAR (Global / Descubrimiento)
     // Regla: Solo cosas marcadas como PÚBLICAS.
     @Query("SELECT rl FROM ReadingLog rl WHERE " +
-            "rl.visibility = com.josec.catalog.model.enums.Visibility.PUBLIC " +
-            "ORDER BY rl.createdAt DESC")
-    List<ReadingLog> findExploreFeed();
+            "rl.visibility = com.josec.catalog.model.enums.Visibility.PUBLIC ")
+    Page<ReadingLog> findExploreFeed(Pageable pageable);
 
 }
