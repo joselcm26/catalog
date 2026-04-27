@@ -1,5 +1,6 @@
 package com.josec.catalog.model;
 
+import com.josec.catalog.model.enums.Visibility;
 import com.josec.catalog.security.Ownable;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -32,8 +33,9 @@ public class BookList extends SoftDeleteable implements Ownable {
 
     private String description;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private boolean isPublic = true;
+    private Visibility visibility = Visibility.PRIVATE; // Privado por defecto
 
     // --- RELACIONES ---
 

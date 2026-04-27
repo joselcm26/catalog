@@ -1,6 +1,7 @@
 package com.josec.catalog.security;
 
 import com.josec.catalog.model.User;
+import com.josec.catalog.model.enums.Visibility;
 
 /**
  * Interfaz que extenderán las entidades que implementen listas, con los métodos básicos
@@ -9,5 +10,5 @@ import com.josec.catalog.model.User;
  */
 public interface Ownable {
     User getOwner();
-    boolean isPublic();
+    Visibility getVisibility();
 }

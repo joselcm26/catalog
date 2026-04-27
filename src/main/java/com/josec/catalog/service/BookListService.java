@@ -7,6 +7,7 @@ import com.josec.catalog.exception.*;
 import com.josec.catalog.model.Book;
 import com.josec.catalog.model.BookList;
 import com.josec.catalog.model.User;
+import com.josec.catalog.model.enums.Visibility;
 import com.josec.catalog.repository.BookListRepository;
 import com.josec.catalog.repository.BookRepository;
 import com.josec.catalog.repository.UserRepository;
@@ -87,7 +88,7 @@ public class BookListService {
 
         //Comprobación de seguridad
         // Si la lista es PRIVADA, comprobamos si el que mira es el dueño
-        if (!bookList.isPublic()) {
+        if (bookList.getVisibility().equals(Visibility.PRIVATE)) {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
             // Si el usuario no ha enviado Token (es null), o no es el dueño, le bloqueamos
@@ -190,7 +191,7 @@ public class BookListService {
 
         //Comprobar si la lista es pública
 
-        if(!bookList.isPublic()){
+        if(bookList.getVisibility().equals(Visibility.PRIVATE)) {
             throw new RuntimeException("Cannot add collaborators to a private list");
         }
 
@@ -318,7 +319,7 @@ public class BookListService {
                 .anyMatch(c -> c.getUsername().equals(loggedInUsername));
 
         // Comprobaciones
-        if (!bookList.isPublic() && !isOwner) {
+        if (bookList.getVisibility().equals(Visibility.PRIVATE) && !isOwner) {
             // Si la lista es privada, NADIE excepto el dueño puede siquiera tocarla
             throw new AccessDeniedException("This list is private.");
         }

@@ -1,5 +1,6 @@
 package com.josec.catalog.model;
 
+import com.josec.catalog.model.enums.Visibility;
 import com.josec.catalog.security.Ownable;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -23,6 +24,7 @@ import java.time.LocalDateTime;
 @SQLRestriction("deleted_at IS NULL")
 public class ReadingLog extends SoftDeleteable implements Ownable {
 
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
@@ -44,9 +46,10 @@ public class ReadingLog extends SoftDeleteable implements Ownable {
     //Puntiación opcional del 1 al 5
     @Column(name = "rating")
     private Integer rating;
-    
+
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private boolean isPublic = false;
+    private Visibility visibility = Visibility.PRIVATE; // Privado por defecto
 
     //Comentario personal privado opcional
     @Column(name = "private_comment", columnDefinition = "TEXT")

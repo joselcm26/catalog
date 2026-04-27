@@ -3,6 +3,7 @@ package com.josec.catalog.security;
 import com.josec.catalog.exception.AccessDeniedException;
 import com.josec.catalog.exception.UserNotFoundException;
 import com.josec.catalog.model.User;
+import com.josec.catalog.model.enums.Visibility;
 import com.josec.catalog.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -19,7 +20,7 @@ public class PermissionValidator {
 
     public void checkPermissions(Ownable entity) {
         // 1. Si no es privado, tódo el mundo puede verlo (sale rápido)
-        if (entity.isPublic()) {
+        if (entity.getVisibility().equals(Visibility.PUBLIC)) {
             return;
         }
 

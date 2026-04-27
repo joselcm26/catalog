@@ -1,5 +1,6 @@
 package com.josec.catalog.model;
 
+import com.josec.catalog.model.enums.Visibility;
 import com.josec.catalog.security.Ownable;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -21,8 +22,9 @@ public class ReadList implements Ownable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private boolean isPublic = false; // Nunca podrá ser público
+    private Visibility visibility = Visibility.PRIVATE; // Nunca podrá ser público
 
     //Relación Uno a Uno (una lista de lectura es de un solo usuario)
     @OneToOne(fetch = FetchType.LAZY)
