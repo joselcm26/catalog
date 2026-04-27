@@ -46,7 +46,7 @@ public class ReadingLogService {
         Integer userId = permissionValidator.whoIsLoggedIn();
 
         // 2. Obtener su lista de logs y devolver
-        List<ReadingLog> log = readingLogRepository.findByOwnerIdOrderByReadDateDesc(userId);
+        List<ReadingLog> log = readingLogRepository.findMyDiary(userId);
 
         if(!log.isEmpty()) {
             return log.stream()

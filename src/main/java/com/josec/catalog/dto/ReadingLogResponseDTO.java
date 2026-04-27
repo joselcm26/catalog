@@ -1,9 +1,11 @@
 package com.josec.catalog.dto;
 
+import com.josec.catalog.model.enums.Visibility;
 import lombok.Data;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 public class ReadingLogResponseDTO {
@@ -15,4 +17,10 @@ public class ReadingLogResponseDTO {
     private String privateComment;
     private LocalDateTime createdAt;
     private LocalDateTime deletedAt;
+    private Visibility visibility;
+
+    // Datos sociales para el feed
+    private Integer likeCount;
+    private Boolean iLikedIt;
+    private List<CommentResponseDTO> comments;
 }
