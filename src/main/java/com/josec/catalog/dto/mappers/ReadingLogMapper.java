@@ -12,7 +12,6 @@ import org.mapstruct.ReportingPolicy;
 public interface ReadingLogMapper {
 
     @Mapping(source = "user.username", target = "username") // Navega del padre al usuario
-    @Mapping(source = "id", target = "id") // El ID viene de MediaLog
     ReadingLogResponseDTO toDTO(ReadingLog readingLog);
 
     ReadingLog toEntity(ReadingLogRequestDTO readingLogRequestDTO);

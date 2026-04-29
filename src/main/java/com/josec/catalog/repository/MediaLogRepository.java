@@ -1,6 +1,7 @@
 package com.josec.catalog.repository;
 
 import com.josec.catalog.model.MediaLog;
+import com.josec.catalog.model.ReadingLog;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -28,5 +29,46 @@ public interface MediaLogRepository extends JpaRepository<MediaLog, Long> {
             "    AND fc.followed.id = m.user.id AND fc.status = com.josec.catalog.model.enums.FollowStatus.ACCEPTED" +
             "))")
     Page<MediaLog> findUniversalFeed(@Param("myId") Integer myId, Pageable pageable);
+
+    // TODO: CAMBIAR A SLICE PARA SCROLL INFINITO (?)
+    /**
+     * Query para el log del usuario.
+     * Muestra todas sus entradas.
+     *
+     * @param ownerId Id del propietario
+     * @return Lista de readingLogs
+     */
+    // MI DIARIO (Personal)
+    // El dueño ve absolutamente todos sus registros.
+    @Query("SELECT m FROM MediaLog m WHERE m.user.id = :ownerId")
+    Page<MediaLog> findMyDiary(@Param("ownerId") Integer ownerId, Pageable pageable);
+
+    /**
+     * Query para el feed social.
+     * Se muestran los post de visibilidad para amigos.
+     *
+     * @param ownerId Id del que hace la consulta
+     * @return Lista de mediaLogs
+     */
+    // Regla: No es privado AND (es mío OR sigo al autor)
+    @Query("SELECT m FROM MediaLog m WHERE " +
+            "m.visibility != com.josec.catalog.model.enums.Visibility.PRIVATE AND " +
+            "(m.user.id = :ownerId OR EXISTS (" +
+            "    SELECT fc FROM FollowConnection fc WHERE fc.follower.id = :ownerId " +
+            "    AND fc.followed.id = m.user.id AND fc.status = com.josec.catalog.model.enums.FollowStatus.ACCEPTED" +
+            ")) ")
+    Page<MediaLog> findHomeFeed(@Param("ownerId") Integer ownerId, Pageable pageable);
+
+    /**
+     * Query para el feed de explorar
+     * Se muestran publicaciones de todos
+     *
+     * @return Lista de mediaLogs
+     */
+    // EXPLORAR (Global / Descubrimiento)
+    // Regla: Solo cosas marcadas como PÚBLICAS.
+    @Query("SELECT m FROM MediaLog m WHERE " +
+            "m.visibility = com.josec.catalog.model.enums.Visibility.PUBLIC ")
+    Page<MediaLog> findExploreFeed(Pageable pageable);
 
 }

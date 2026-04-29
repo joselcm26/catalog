@@ -1,31 +1,21 @@
 package com.josec.catalog.dto;
 
-import com.josec.catalog.model.enums.Visibility;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Data
-public class ReadingLogResponseDTO {
+@EqualsAndHashCode(callSuper=true) // Para que lombok tenga en cuenta los campos del padre
+public class ReadingLogResponseDTO extends MediaLogResponseDTO {
 
-    // Cosas de MediaLog (padre)
-    private Integer id;
-    private String username;
-    private Visibility visibility;
-
-    //Cosas de ReadingLog
     private BookResponseDTO book;
     private LocalDate readDate;
     private Integer rating;
     private String privateComment;
-
-    private LocalDateTime createdAt;
     private LocalDateTime deletedAt;
 
-    // Datos sociales para el feed
-    private Integer likeCount;
-    private Boolean iLikedIt;
+
 
 }

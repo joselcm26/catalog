@@ -46,53 +46,10 @@ public class ReadingLogService {
     private PermissionValidator permissionValidator;
 
 
-    // -- FEEDS --
-
-    public Page<ReadingLogResponseDTO> getMyDiary(int page, int size) {
-        // 1. Extraer el Id de usuario
-        Integer userId = permissionValidator.whoIsLoggedIn();
-
-        // 2. Obtener su lista de logs y devolver
-        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
-
-        Page<ReadingLog> logPage = readingLogRepository.findMyDiary(userId, pageable);
-
-        if(!logPage.isEmpty()) {
-            return logPage.map(readingLogMapper::toDTO); // Mapear
-        }  else {
-            throw new EmptyReadingLogException("The read log for this user is empty");
-        }
-    }
-
-    public Page<ReadingLogResponseDTO> getMyHomeFeed(int page, int size) {
-        // 1. Extraer el Id de usuario
-        Integer userId = permissionValidator.whoIsLoggedIn();
-
-        // 2. Obtener su lista de logs y devolver
-        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
-
-        Page<ReadingLog> logPage = readingLogRepository.findHomeFeed(userId, pageable);
-
-        if(!logPage.isEmpty()) {
-            return logPage.map(readingLogMapper::toDTO); // Mapear
-        }  else {
-            throw new EmptyReadingLogException("The home feed for this user is empty");
-        }
-    }
-
-    public Page<ReadingLogResponseDTO> getExploreFeed(int page, int size) {
-
-        // Obtener su lista de logs y devolver
-        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
-
-        Page<ReadingLog> logPage = readingLogRepository.findExploreFeed(pageable);
-
-        if(!logPage.isEmpty()) {
-            return logPage.map(readingLogMapper::toDTO); // Mapear
-        }  else {
-            throw new EmptyReadingLogException("The explore feed is empty");
-        }
-    }
+    // TODO: Vista filtrada: Solo libros
+//    public Page<ReadingLogResponseDTO> getMyReadingDiary(int page, int size) {
+//        // Usa ReadingLogRepository para traer SOLO libros
+//    }
 
     // -- LOGS --
 
@@ -111,7 +68,7 @@ public class ReadingLogService {
         // 3. Crear el registro
         ReadingLog log = new ReadingLog();
         log.setBook(book);
-        log.setOwner(user);
+        log.setUser(user);
         log.setReadDate(request.getReadDate());
         log.setRating(request.getRating());
         log.setPrivateComment(request.getPrivateComment());

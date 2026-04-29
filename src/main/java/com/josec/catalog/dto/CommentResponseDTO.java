@@ -10,6 +10,6 @@ public class CommentResponseDTO {
     private String content;
     private Long userId;
     private String username;
-    private Integer readingLogId;
+    private Integer mediaLogId;
     private LocalDateTime creationDate;
 }

@@ -11,6 +11,6 @@ public interface CommentMapper {
 
     @Mapping(source = "author.id", target = "userId")
     @Mapping(source = "author.username", target = "username")
-    @Mapping(source = "readingLog.id", target = "readingLogId")
+    @Mapping(source = "mediaLog.id", target = "mediaLogId")
     CommentResponseDTO toDTO(Comment comment);
 }

@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
+
 /**
  * Clase dedicada a los likes de un ReadingLog
  */
@@ -11,7 +13,7 @@ import lombok.Setter;
 @Setter
 @Entity
 @Table(name = "media_log_likes", uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"user_id", "media_log_id"})
+        @UniqueConstraint(columnNames = {"user_id", "media_log_id"}) // Evita likes duplicados
 })
 public class MediaLogLike {
     @Id
@@ -25,4 +27,7 @@ public class MediaLogLike {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "media_log_id", nullable = false)
     private MediaLog mediaLog;
+
+    @Column(name = "created_at", updatable = false)
+    LocalDateTime createdAt = LocalDateTime.now();
 }

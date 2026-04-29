@@ -37,45 +37,12 @@ public interface ReadingLogRepository extends JpaRepository<ReadingLog, Integer>
     @Query(value = "SELECT * FROM reading_logs WHERE owner_id = :ownerId AND deleted_at IS NOT NULL", nativeQuery = true)
     List<ReadingLog> findAllDeletedByUserId(@Param("ownerId") Integer ownerId);
 
-    // TODO: CAMBIAR A SLICE PARA SCROLL INFINITO (?)
-    /**
-     * Query para el log del usuario.
-     * Muestra todas sus entradas.
-     * 
-     * @param ownerId Id del propietario
-     * @return Lista de readingLogs
-     */
+
     // MI DIARIO (Personal)
     // El dueño ve absolutamente todos sus registros.
     @Query("SELECT rl FROM ReadingLog rl WHERE rl.user.id = :ownerId")
     Page<ReadingLog> findMyDiary(@Param("ownerId") Integer ownerId, Pageable pageable);
-    
-    /**
-     * Query para el feed social.
-     * Se muestran los post de visibilidad para amigos.
-     *
-     * @param ownerId Id del que hace la consulta
-     * @return Lista de readingLogs
-     */
-    // Regla: No es privado AND (es mío OR sigo al autor)
-    @Query("SELECT rl FROM ReadingLog rl WHERE " +
-            "rl.visibility != com.josec.catalog.model.enums.Visibility.PRIVATE AND " +
-            "(rl.user.id = :ownerId OR EXISTS (" +
-            "    SELECT fc FROM FollowConnection fc WHERE fc.follower.id = :ownerId " +
-            "    AND fc.followed.id = rl.user.id AND fc.status = com.josec.catalog.model.enums.FollowStatus.ACCEPTED" +
-            ")) ")
-    Page<ReadingLog> findHomeFeed(@Param("ownerId") Integer ownerId, Pageable pageable);
 
-    /**
-     * Query para el feed de explorar
-     * Se muestran publicaciones de todos
-     * 
-     * @return Lista de readingLogs
-     */
-    // EXPLORAR (Global / Descubrimiento)
-    // Regla: Solo cosas marcadas como PÚBLICAS.
-    @Query("SELECT rl FROM ReadingLog rl WHERE " +
-            "rl.visibility = com.josec.catalog.model.enums.Visibility.PUBLIC ")
-    Page<ReadingLog> findExploreFeed(Pageable pageable);
+
 
 }
