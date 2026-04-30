@@ -33,8 +33,8 @@ public class ReadingLog extends MediaLog {
     private Integer rating;
 
     //Comentario personal privado opcional
-    @Column(name = "private_comment", columnDefinition = "TEXT")
-    private String privateComment;
+    @Column(name = "log_comment", columnDefinition = "TEXT")
+    private String logComment;
 
 
 }

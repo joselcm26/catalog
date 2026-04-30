@@ -13,7 +13,7 @@ public class ReadingLogResponseDTO extends MediaLogResponseDTO {
     private BookResponseDTO book;
     private LocalDate readDate;
     private Integer rating;
-    private String privateComment;
+    private String logComment;
     private LocalDateTime deletedAt;
 
 

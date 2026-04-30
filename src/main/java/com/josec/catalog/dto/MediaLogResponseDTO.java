@@ -6,6 +6,7 @@ import com.josec.catalog.model.enums.Visibility;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 //Añadir un campo al JSON llamado mediaType
@@ -29,4 +30,7 @@ public class MediaLogResponseDTO {
     // Datos de interacción
     private Integer likeCount;
     private Boolean iLikedIt;
+
+    //Comentarios
+    private List<CommentResponseDTO> comments;
 }

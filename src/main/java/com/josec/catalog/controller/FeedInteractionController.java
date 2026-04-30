@@ -1,10 +1,13 @@
 package com.josec.catalog.controller;
 
+import com.josec.catalog.dto.CommentRequestDTO;
+import com.josec.catalog.dto.CommentResponseDTO;
 import com.josec.catalog.dto.MediaLogResponseDTO;
 import com.josec.catalog.dto.ReadingLogResponseDTO;
 import com.josec.catalog.service.FeedInteractionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -61,9 +64,24 @@ public class FeedInteractionController {
         return ResponseEntity.ok(feedInteractionService.getExploreFeed(page, size));
     }
 
+    // --- LIKES Y COMENTARIOS ---
+
     @PostMapping("/{id}/like")
     public ResponseEntity<String> toggleLike(@PathVariable Integer id) {
         feedInteractionService.toggleLike(id);
         return ResponseEntity.ok("Like " + id + " has been toggled");
+    }
+
+    @PostMapping("/{id}/comment")
+    public ResponseEntity<CommentResponseDTO> addComment(
+            @PathVariable Integer id,
+            @RequestBody CommentRequestDTO commentRequestDTO) {
+        CommentResponseDTO commentResponseDTO = feedInteractionService.addComment(id, commentRequestDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).body(commentResponseDTO);
+    }
+
+    @DeleteMapping("/{id}/comment")
+    public ResponseEntity<String> deleteComment(@PathVariable Integer id) {
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).body("Comment " + id + " has been deleted");
     }
 }

@@ -71,7 +71,8 @@ public class ReadingLogService {
         log.setUser(user);
         log.setReadDate(request.getReadDate());
         log.setRating(request.getRating());
-        log.setPrivateComment(request.getPrivateComment());
+        log.setLogComment(request.getLogComment());
+        log.setVisibility(request.getVisibility()); // Viene de MediaLog (padre)
 
 
 
