@@ -6,6 +6,7 @@ import com.josec.catalog.service.ReadingLogService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -23,6 +24,14 @@ public class ReadingLogController {
 
 
     // --- GESTIÓN DE LOGS ---
+
+    @GetMapping
+    public ResponseEntity<Page<ReadingLogResponseDTO>> getMyReadingDiary(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        return ResponseEntity.ok(readingLogService.getMyReadingDiary(page, size));
+    }
 
     /**
      * Postear un read log en el log del usuario logeado

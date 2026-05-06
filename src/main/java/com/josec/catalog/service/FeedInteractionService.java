@@ -3,13 +3,11 @@ package com.josec.catalog.service;
 import com.josec.catalog.dto.CommentRequestDTO;
 import com.josec.catalog.dto.CommentResponseDTO;
 import com.josec.catalog.dto.MediaLogResponseDTO;
-import com.josec.catalog.dto.ReadingLogResponseDTO;
 import com.josec.catalog.dto.mappers.CommentMapper;
 import com.josec.catalog.dto.mappers.MediaLogMapper;
 import com.josec.catalog.exception.AccessDeniedException;
 import com.josec.catalog.exception.EmptyReadingLogException;
 import com.josec.catalog.exception.MediaLogNotFoundException;
-import com.josec.catalog.exception.UserNotFoundException;
 import com.josec.catalog.model.*;
 import com.josec.catalog.repository.CommentRepository;
 import com.josec.catalog.repository.MediaLogLikeRepository;
@@ -58,6 +56,8 @@ public class FeedInteractionService {
 
         Page<MediaLog> logPage = mediaLogRepository.findMyDiary(userId, pageable);
 
+        // NOTA: Aquí no ponemos ni los comentarios ni los likes porque son todos privados, entonces
+        // en el front no se mostrará eso
         if(!logPage.isEmpty()) {
             return logPage.map(mediaLogMapper::toDTO); // Mapear
         }  else {
@@ -74,28 +74,49 @@ public class FeedInteractionService {
 
         Page<MediaLog> logPage = mediaLogRepository.findHomeFeed(userId, pageable);
 
-        //TODO: rellenar likes y si el usuario ya tiene like
-
+        // 3. Rellenar likes y si el usuario ya tiene like
 
         if(!logPage.isEmpty()) {
-            return logPage.map(mediaLogMapper::toDTO); // Mapear
+
+            // TODO: refactorizar en el futuro para evitar el problema N+1
+
+            return logPage.map(log ->{// Mapear
+                // A. MapStruct hace el trabajo (polimorfismo y comentarios)
+                MediaLogResponseDTO dto = mediaLogMapper.toDTO(log);
+
+                // B. Enriquecer
+                int likes = likeRepository.countByMediaLogId(log.getId().intValue());
+                boolean iLikedIt = likeRepository.existsByUserIdAndMediaLogId(userId, log.getId().intValue());
+
+                dto.setLikeCount(likes);
+                dto.setILikedIt(iLikedIt);
+                return dto;
+            });
         }  else {
             throw new EmptyReadingLogException("The home feed for this user is empty");
         }
     }
 
     public Page<MediaLogResponseDTO> getExploreFeed(int page, int size) {
+        // 1. Extraer el Id de usuario
+        Integer userId = permissionValidator.whoIsLoggedIn();
 
         // Obtener su lista de logs y devolver
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
 
         Page<MediaLog> logPage = mediaLogRepository.findExploreFeed(pageable);
 
-        //TODO: rellenar likes y si el usuario ya tiene like
-
-
+        // 3. Rellenar likes y si el usuario ya tiene like
         if(!logPage.isEmpty()) {
-            return logPage.map(mediaLogMapper::toDTO); // Mapear
+
+            // TODO: refactorizar en el futuro para evitar el problema N+1
+
+            return logPage.map(log -> {// Mapear
+                MediaLogResponseDTO dto = mediaLogMapper.toDTO(log);
+                dto.setLikeCount(likeRepository.countByMediaLogId(log.getId().intValue()));
+                dto.setILikedIt(likeRepository.existsByUserIdAndMediaLogId(userId, log.getId().intValue()));
+                return dto;
+            });
         }  else {
             throw new EmptyReadingLogException("The explore feed is empty");
         }

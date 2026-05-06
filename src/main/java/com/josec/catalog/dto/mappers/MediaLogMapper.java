@@ -9,7 +9,7 @@ import org.mapstruct.Mapping;
 import org.mapstruct.SubclassMapping;
 import org.mapstruct.SubclassMappings;
 
-@Mapper(componentModel = "spring", uses = {ReadingLogMapper.class})
+@Mapper(componentModel = "spring", uses = {ReadingLogMapper.class, CommentMapper.class})
 public interface MediaLogMapper {
 
     //Mapeo polimórfico

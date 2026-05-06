@@ -46,10 +46,24 @@ public class ReadingLogService {
     private PermissionValidator permissionValidator;
 
 
-    // TODO: Vista filtrada: Solo libros
-//    public Page<ReadingLogResponseDTO> getMyReadingDiary(int page, int size) {
-//        // Usa ReadingLogRepository para traer SOLO libros
-//    }
+    /**
+     * Diario solo de ReadingLogs
+     *
+     * @param page num. página
+     * @param size tamaño de página
+     * @return página con logs
+     */
+    public Page<ReadingLogResponseDTO> getMyReadingDiary(int page, int size) {
+        //1. usuario
+        Integer userId = permissionValidator.whoIsLoggedIn();
+
+        Pageable pageable = PageRequest.of(page, size);
+
+        Page<ReadingLog> readingLogs = readingLogRepository.findMyDiary(userId, pageable);
+
+        return readingLogs
+                .map(readingLog -> readingLogMapper.toDTO(readingLog));
+    }
 
     // -- LOGS --
 
