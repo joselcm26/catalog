@@ -45,19 +45,23 @@ public interface MediaLogRepository extends JpaRepository<MediaLog, Long> {
 
     /**
      * Query para el feed social.
-     * Se muestran los post de visibilidad para amigos.
+     * Se muestran los post de visibilidad para amigos, sin mostrar los contactos bloqueados.
      *
-     * @param ownerId Id del que hace la consulta
+     * @param myId Id del que hace la consulta
      * @return Lista de mediaLogs
      */
-    // Regla: No es privado AND (es mío OR sigo al autor)
     @Query("SELECT m FROM MediaLog m WHERE " +
             "m.visibility != com.josec.catalog.model.enums.Visibility.PRIVATE AND " +
-            "(m.user.id = :ownerId OR EXISTS (" +
-            "    SELECT fc FROM FollowConnection fc WHERE fc.follower.id = :ownerId " +
+            "(m.user.id = :myId OR EXISTS (" +
+            "    SELECT fc FROM FollowConnection fc WHERE fc.follower.id = :myId " +
             "    AND fc.followed.id = m.user.id AND fc.status = com.josec.catalog.model.enums.FollowStatus.ACCEPTED" +
-            ")) ")
-    Page<MediaLog> findHomeFeed(@Param("ownerId") Integer ownerId, Pageable pageable);
+            ")) AND " +
+            "NOT EXISTS (" +
+            "    SELECT bc FROM BlockConnection bc WHERE " +
+            "    (bc.blocker.id = :myId AND bc.blocked.id = m.user.id) OR " +
+            "    (bc.blocker.id = m.user.id AND bc.blocked.id = :myId)" +
+            ")")
+    Page<MediaLog> findHomeFeed(@Param("myId") Integer myId, Pageable pageable);
 
     /**
      * Query para el feed de explorar
@@ -68,7 +72,12 @@ public interface MediaLogRepository extends JpaRepository<MediaLog, Long> {
     // EXPLORAR (Global / Descubrimiento)
     // Regla: Solo cosas marcadas como PÚBLICAS.
     @Query("SELECT m FROM MediaLog m WHERE " +
-            "m.visibility = com.josec.catalog.model.enums.Visibility.PUBLIC ")
-    Page<MediaLog> findExploreFeed(Pageable pageable);
+            "m.visibility = com.josec.catalog.model.enums.Visibility.PUBLIC AND " +
+            "NOT EXISTS (" +
+            "    SELECT bc FROM BlockConnection bc WHERE " +
+            "    (bc.blocker.id = :myId AND bc.blocked.id = m.user.id) OR " +
+            "    (bc.blocker.id = m.user.id AND bc.blocked.id = :myId)" +
+            ")")
+    Page<MediaLog> findExploreFeed(@Param("myId") Integer myId, Pageable pageable);
 
 }

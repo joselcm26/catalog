@@ -28,7 +28,7 @@ public class FeedInteractionController {
      * @return lista de logs propios del usuario
      */
     @GetMapping("/diary")
-    public ResponseEntity<Page<MediaLogResponseDTO>> getMyReadingLogs(
+    public ResponseEntity<Page<MediaLogResponseDTO>> getMyLogs(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {

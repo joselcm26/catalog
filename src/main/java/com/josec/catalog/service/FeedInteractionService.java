@@ -56,8 +56,7 @@ public class FeedInteractionService {
 
         Page<MediaLog> logPage = mediaLogRepository.findMyDiary(userId, pageable);
 
-        // NOTA: Aquí no ponemos ni los comentarios ni los likes porque son todos privados, entonces
-        // en el front no se mostrará eso
+        // TODO: Poner likes y comentarios tambien en el diario (?)
         if(!logPage.isEmpty()) {
             return logPage.map(mediaLogMapper::toDTO); // Mapear
         }  else {
@@ -104,7 +103,7 @@ public class FeedInteractionService {
         // Obtener su lista de logs y devolver
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
 
-        Page<MediaLog> logPage = mediaLogRepository.findExploreFeed(pageable);
+        Page<MediaLog> logPage = mediaLogRepository.findExploreFeed(userId, pageable);
 
         // 3. Rellenar likes y si el usuario ya tiene like
         if(!logPage.isEmpty()) {

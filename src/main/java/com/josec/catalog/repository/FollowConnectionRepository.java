@@ -4,6 +4,7 @@ import com.josec.catalog.model.FollowConnection;
 import com.josec.catalog.model.enums.FollowStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -34,5 +35,14 @@ public interface FollowConnectionRepository extends JpaRepository<FollowConnecti
      * @return Lista de usuarios seguidos por el usuario
      */
     List<FollowConnection> findByFollowerIdAndStatus(Integer followerId, FollowStatus status);
+
+    /**
+     * Para utilizar en el bloqueo de usuarios
+     *
+     * @param followerId el que bloquea
+     * @param followedId el bloqueado
+     */
+    @Transactional
+    void deleteByFollowerIdAndFollowedId(Integer followerId, Integer followedId);
 
 }

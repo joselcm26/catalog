@@ -95,6 +95,16 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(getErrors(ex));
     }
 
+    @ExceptionHandler(EntryAlreadyExistException.class)
+    public ResponseEntity<Map<String, String>> handleBookNotFound(EntryAlreadyExistException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(getErrors(ex));
+    }
+
+    @ExceptionHandler(EntryNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleBookNotFound(EntryNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(getErrors(ex));
+    }
+
     // -- Privados
 
     //Para evitar repetir código
