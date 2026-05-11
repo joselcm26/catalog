@@ -8,11 +8,14 @@ import com.josec.catalog.service.UserService;
 import jakarta.validation.Valid;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/users")
@@ -74,5 +77,20 @@ public class UserController {
     public ResponseEntity<String> changePrivacy(@Valid @RequestBody PrivacyChangeDTO requestDTO) {
         userService.changePrivacy(requestDTO.isPrivateProfile());
         return ResponseEntity.ok("Privacy has been successfully changed.");
+    }
+    // GET /api/users/search?query=text&page=0&size=10
+    @GetMapping("/search")
+    public ResponseEntity<Page<UserSummaryResponseDTO>> searchUsers(
+            @RequestParam(name = "query") String query,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "0") int size
+    ) {
+        // Pequeña comprobación para evitar búsquedas vacías
+        if(query == null || query.trim().isEmpty()){
+            return ResponseEntity.ok(Page.empty());
+        }
+
+        Page<UserSummaryResponseDTO> results = userService.searchUsers(query.trim(), page, size);
+        return ResponseEntity.ok(results);
     }
 }

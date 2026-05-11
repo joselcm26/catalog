@@ -1,9 +1,6 @@
 package com.josec.catalog.service;
 
-import com.josec.catalog.dto.ChangePasswordRequestDTO;
-import com.josec.catalog.dto.UserProfileUpdateRequestDTO;
-import com.josec.catalog.dto.UserRequestDTO;
-import com.josec.catalog.dto.UserResponseDTO;
+import com.josec.catalog.dto.*;
 import com.josec.catalog.dto.mappers.UserMapper;
 import com.josec.catalog.exception.*;
 import com.josec.catalog.model.ReadList;
@@ -13,8 +10,12 @@ import com.josec.catalog.repository.UserRepository;
 import com.josec.catalog.security.PermissionValidator;
 import com.josec.catalog.util.UpdateUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class UserService {
@@ -80,6 +81,8 @@ public class UserService {
         return userMapper.toDTO(savedUser); // Devolver traducido a DTO
 
     }
+
+    // -- CAMBIOS DEL PERFIL DE USUARIO Y SEGURIDAD
 
     public UserResponseDTO updateUser(Integer userId, UserProfileUpdateRequestDTO requestDTO) {
 
@@ -150,6 +153,26 @@ public class UserService {
             user.setPrivateProfile(privacy);
         }
         userRepository.save(user);
+    }
+
+    // --- BÚSQUEDA DE USUARIOS ---
+
+    /**
+     * Búsqueda de usuarios por nombre de usuario
+     *
+     * @param page núm. página
+     * @param size tamaño de la página
+     * @param query texto de búsqueda
+     * @return Página de DTO de usuarios encontrados
+     */
+    @Transactional(readOnly = true)
+    public Page<UserSummaryResponseDTO> searchUsers(String query, int page, int size){
+        Integer userId = permissionValidator.whoIsLoggedIn();
+        PageRequest pageRequest = PageRequest.of(page, size, Sort.by("username").ascending());
+
+        Page<User> result = userRepository.searchUsers(query, userId, pageRequest);
+
+        return result.map(userMapper::toSummaryDTO);
     }
 
 }

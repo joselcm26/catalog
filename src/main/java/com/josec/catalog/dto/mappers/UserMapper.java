@@ -3,6 +3,7 @@ package com.josec.catalog.dto.mappers;
 import com.josec.catalog.dto.UserProfileUpdateRequestDTO;
 import com.josec.catalog.dto.UserRequestDTO;
 import com.josec.catalog.dto.UserResponseDTO;
+import com.josec.catalog.dto.UserSummaryResponseDTO;
 import com.josec.catalog.model.User;
 import org.mapstruct.*;
 
@@ -36,5 +37,13 @@ public interface UserMapper {
      */
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void updateEntityFromDto(UserProfileUpdateRequestDTO dto, @MappingTarget User entity);
+
+    /**
+     * Para la búsqueda de usuarios. Incluye menos datos.
+     *
+     * @param user a mapear
+     * @return DTO
+     */
+    UserSummaryResponseDTO toSummaryDTO(User user);
 
 }
