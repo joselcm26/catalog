@@ -53,7 +53,7 @@ public class BlockService {
             throw new AccessDeniedException("You cannot block yourself.");
         }
 
-        if(blockRepository.existByBlockerIdAndBlockerId(myID.longValue(), targetUser.longValue())){
+        if(blockRepository.existsByBlockerIdAndBlockerId(myID.longValue(), targetUser.longValue())){
             throw new EntryAlreadyExistException("Yoy already have blocked this user.");
         }
 

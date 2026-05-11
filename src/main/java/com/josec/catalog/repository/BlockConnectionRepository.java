@@ -18,7 +18,7 @@ public interface BlockConnectionRepository extends JpaRepository<BlockConnection
      * @param blockedId bloqueado
      * @return true si existe, false si no
      */
-    boolean existByBlockerIdAndBlockerId(Long blockerId, Long blockedId);
+    boolean existsByBlockerIdAndBlockerId(Long blockerId, Long blockedId);
 
     /**
      * Buscar bloqueo para utilizar en desbloqueo

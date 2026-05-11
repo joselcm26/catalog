@@ -6,6 +6,7 @@ import com.josec.catalog.model.User;
 import com.josec.catalog.repository.UserRepository;
 import com.josec.catalog.security.JwtUtil;
 import com.josec.catalog.service.AuthService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -29,9 +30,11 @@ public class AuthController {
     private JwtUtil jwtUtil;
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@Valid @RequestBody AuthRequestDTO requestDTO) {
+    public ResponseEntity<?> login(
+            @Valid @RequestBody AuthRequestDTO requestDTO,
+            HttpServletRequest request) { // Metadatos del usuario
 
-        String token = authService.loginUser(requestDTO);
+        String token = authService.loginUser(requestDTO, request);
 
         return ResponseEntity.ok(new AuthResponseDTO(token));
     }
