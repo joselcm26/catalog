@@ -29,4 +29,14 @@ public class Review {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
+
+    // AUXILIARES (MapStruct)
+
+    public Integer getUserId() {
+        return user.getId();
+    }
+
+    public String getUserName() {
+        return user.getUsername();
+    }
 }

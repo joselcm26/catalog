@@ -9,9 +9,7 @@ import lombok.Data;
 @Data
 public class ReviewRequestDTO {
 
-    //ID del usuario que ha hecho la reseña
-    @NotNull(message = "The user ID is mandatory")
-    private Long userId;
+    // UserId eliminado, no es seguro
 
     @Min(value = 1, message = "The minimun rating is 1")
     @Max(value = 5, message = "The maximun rating is 5")
