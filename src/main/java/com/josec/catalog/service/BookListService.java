@@ -1,22 +1,22 @@
 package com.josec.catalog.service;
 
-import com.josec.catalog.dto.BookListRequestDTO;
-import com.josec.catalog.dto.BookListResponseDTO;
-import com.josec.catalog.dto.BookResponseDTO;
-import com.josec.catalog.dto.UserResponseDTO;
+import com.josec.catalog.dto.*;
 import com.josec.catalog.dto.mappers.BookListMapper;
 import com.josec.catalog.dto.mappers.BookMapper;
 import com.josec.catalog.exception.*;
 import com.josec.catalog.model.Book;
 import com.josec.catalog.model.BookList;
 import com.josec.catalog.model.User;
+import com.josec.catalog.model.enums.Visibility;
 import com.josec.catalog.repository.BookListRepository;
 import com.josec.catalog.repository.BookRepository;
 import com.josec.catalog.repository.UserRepository;
+import com.josec.catalog.security.PermissionValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 
 import java.util.List;
@@ -46,6 +46,9 @@ public class BookListService {
     @Autowired
     private BookListMapper bookListMapper;
 
+    @Autowired
+    private PermissionValidator permissionValidator;
+
     // --- Métodos principales ---
 
     /**
@@ -56,21 +59,21 @@ public class BookListService {
      */
     public BookListResponseDTO createList(BookListRequestDTO bookListRequestDTO) {
         // 1. Traducir los datos básicos
-        BookList bookList = bookListMapper.mapToEntity(bookListRequestDTO);
+        BookList bookList = bookListMapper.toEntity(bookListRequestDTO);
 
         // 2. Leemos quién es el usuario logueado en este momento
-        Long loggedInUserId = (Long) Objects
-                .requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getDetails();
+        Integer loggedInUserId = permissionValidator.whoIsLoggedIn();
+
         User owner = null;
         if (loggedInUserId != null) {
-            owner = userRepository.findById(loggedInUserId)
+            owner = userRepository.findById(loggedInUserId.longValue())
                     .orElseThrow(() -> new RuntimeException("User not found: " + loggedInUserId));
         }
 
         // 3. Asignamos al creador como dueño de la lista antes de guardar
         bookList.setOwner(owner);
         bookListRepository.save(bookList);
-        return bookListMapper.mapToDTO(bookList);
+        return bookListMapper.toDTO(bookList);
     }
 
     /**
@@ -85,7 +88,7 @@ public class BookListService {
 
         //Comprobación de seguridad
         // Si la lista es PRIVADA, comprobamos si el que mira es el dueño
-        if (!bookList.isPublic()) {
+        if (bookList.getVisibility().equals(Visibility.PRIVATE)) {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
             // Si el usuario no ha enviado Token (es null), o no es el dueño, le bloqueamos
@@ -94,7 +97,7 @@ public class BookListService {
             }
         }
 
-        return bookListMapper.mapToDTO(bookList);
+        return bookListMapper.toDTO(bookList);
     }
 
     public List<BookResponseDTO> searchBooksInMyList(int listId, String query) {
@@ -109,7 +112,7 @@ public class BookListService {
         List<Book> foundBooks = bookRepository.searchBooksInsideList(listId, query);
 
         // 4. Devolver los DTOs
-        return foundBooks.stream().map(bookMapper::mapToDTO).collect(Collectors.toList());
+        return foundBooks.stream().map(bookMapper::toDTO).collect(Collectors.toList());
     }
 
     /**
@@ -119,14 +122,13 @@ public class BookListService {
      */
     public List<BookListResponseDTO> getMyLists() {
         // 1. Sacar ID de usuario del token
-        Integer loggedInUserId = (Integer)Objects
-                .requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getDetails() ;
+        Integer loggedInUserId = permissionValidator.whoIsLoggedIn();
 
         //3. Buscar las listas del usuario
         List<BookList> userLists = bookListRepository.findByOwnerId(loggedInUserId);
 
         return userLists.stream()
-                .map(bookListMapper::mapToDTO)
+                .map(bookListMapper::toDTO)
                 .collect(Collectors.toList());
     }
 
@@ -134,9 +136,9 @@ public class BookListService {
      * Para eliminar una lista con el Id especificado
      *
      * @param id de la lista a eliminar
-     * @return BookListResponseDTO lista eliminada
      */
-    public BookListResponseDTO deleteBookList(int id) {
+    @Transactional
+    public void deleteBookList(int id) {
         BookList bookList = bookListRepository.findById(id)
                 .orElseThrow(() -> new ListNotFoundException(("List not found with Id: " + id)));
 
@@ -144,7 +146,7 @@ public class BookListService {
         checkOwner(bookList);
 
         bookListRepository.delete(bookList);
-        return bookListMapper.mapToDTO(bookList);
+
     }
 
     /**
@@ -175,7 +177,7 @@ public class BookListService {
         List<Book> list = bookList.getBooks();
         list.add(book);
         bookListRepository.save(bookList);
-        return bookListMapper.mapToDTO(bookList);
+        return bookListMapper.toDTO(bookList);
     }
 
     public BookListResponseDTO addCollaboratorToList(int listId, int userId) {
@@ -189,7 +191,7 @@ public class BookListService {
 
         //Comprobar si la lista es pública
 
-        if(!bookList.isPublic()){
+        if(bookList.getVisibility().equals(Visibility.PRIVATE)) {
             throw new RuntimeException("Cannot add collaborators to a private list");
         }
 
@@ -210,7 +212,7 @@ public class BookListService {
 
         collaborators.add(user);
         bookListRepository.save(bookList);
-        return bookListMapper.mapToDTO(bookList);
+        return bookListMapper.toDTO(bookList);
     }
 
     public BookListResponseDTO deleteCollaboratorFromList(int listId, int userId) {
@@ -238,7 +240,7 @@ public class BookListService {
 
         collaborators.remove(user);
         bookListRepository.save(bookList);
-        return bookListMapper.mapToDTO(bookList);
+        return bookListMapper.toDTO(bookList);
     }
 
     /**
@@ -260,7 +262,39 @@ public class BookListService {
         List<Book> list = bookList.getBooks();
         list.removeIf(book -> book.getId() == bookId);
         bookListRepository.save(bookList);
-        return bookListMapper.mapToDTO(bookList);
+        return bookListMapper.toDTO(bookList);
+    }
+
+    // -- GESTIÓN DE PAPELERA --
+
+    public List<BookListResponseDTO> getMyTrash(){
+        Integer ownerId = permissionValidator.whoIsLoggedIn();
+
+        List<BookList> bookList = bookListRepository.findAllDeletedByUserId(ownerId);
+
+        if(!bookList.isEmpty()) {
+            return bookList.stream()
+                    .map(bookListMapper::toDTO)
+                    .toList();
+        }
+        else {
+            throw new EmptyReadingLogException("The book list trash for this user is empty");
+        }
+    }
+
+    @Transactional
+    public BookListResponseDTO restoreBookList(int logId) {
+        // 1. Buscar en la papelera
+        BookList bookList = bookListRepository.findDeletedById(logId);
+
+        // 2. Validar al usuario
+        permissionValidator.checkPermissions(bookList);
+
+        // 3. Restaurar (poner fecha de borrado a null)
+        bookList.setDeletedAt(null);
+        BookList restoredBookList = bookListRepository.save(bookList);
+
+        return  bookListMapper.toDTO(restoredBookList);
     }
 
 
@@ -285,7 +319,7 @@ public class BookListService {
                 .anyMatch(c -> c.getUsername().equals(loggedInUsername));
 
         // Comprobaciones
-        if (!bookList.isPublic() && !isOwner) {
+        if (bookList.getVisibility().equals(Visibility.PRIVATE) && !isOwner) {
             // Si la lista es privada, NADIE excepto el dueño puede siquiera tocarla
             throw new AccessDeniedException("This list is private.");
         }

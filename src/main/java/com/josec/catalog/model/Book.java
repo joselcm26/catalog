@@ -35,4 +35,26 @@ public class Book {
     @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Review> reviews= new ArrayList<>();
 
+
+    // MÉTODOS AUXILIARES
+
+    /**
+     * Calcula la nota media de las reviews
+     *
+     * @return double nota media
+     */
+    public double getAverageRating(){
+        // Calcular la media de las reviews del libro
+
+        //Cogemos las reseñas -> Extraemos solo la nota (mapToDouble)
+        // -> Calculamos la media (average) -> Si falla, devolvemos 0.0
+        double average = reviews.stream()
+                .mapToDouble(Review::getRating)
+                .average()
+                .orElse(0.0);
+
+        // Redondear a 1 decimal solamente y guardar en DTO
+        return Math.round(average * 10.0) / 10.0;
+    }
+
 }

@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.awt.*;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -20,32 +21,44 @@ import java.util.UUID;
 @Service
 public class FileStorageService {
 
+    public enum ImageType {
+        COVER,
+        PROFILE
+
+    }
+
     //Leer ruta desde application.properties. Si no existe, por defecto será "uploads/covers"
 
     @Value("${file.upload-dir:uploads/covers}")
     private String uploadDir;
 
-    private Path fileStorageLocation;
+    @Value("${file.upload.profile-dir:uploads/profile}")
+    private String profileUploadDir;
+
+    private Path coverStorageLocation;
+    private Path profileStorageLocation;
 
     /**
      * @PostConstruct hace que se ejectute nada más arrangar Spring
      */
     @PostConstruct
     public void init() {
-        //Convertir el texto "uploads/covers" a una ruta real del sistema
-        this.fileStorageLocation = Paths.get(uploadDir).toAbsolutePath().normalize();
+        //Convertir el texto "uploads/**" a una ruta real del sistema
+        this.coverStorageLocation = Paths.get(uploadDir).toAbsolutePath().normalize();
+        this.profileStorageLocation = Paths.get(profileUploadDir).toAbsolutePath().normalize();
         try {
             //Si la carpeta no existe, se crea
-            Files.createDirectories(this.fileStorageLocation);
+            Files.createDirectories(this.coverStorageLocation);
+            Files.createDirectories(this.profileStorageLocation);
         }catch (Exception e){
-            throw new RuntimeException("Could not create directory storage service");
+            throw new RuntimeException("Could not create directories storage services");
         }
     }
 
     /**
-     * Guarda la imagen y devuelve el nombre único generado
+     * Guarda el cover y devuelve el nombre único generado
      */
-    public String saveCoverImage(MultipartFile file) {
+    public String saveImage(MultipartFile file, ImageType imageType) {
         // 1. Validaciones de seguridad
         // Archivo que no sea vacío
         if (file.isEmpty()) {
@@ -71,8 +84,12 @@ public class FileStorageService {
         String newFileName = UUID.randomUUID().toString() + fileExtension;
         try {
             // 4. Montar la ruta final: "C:/.../uploads/covers/name.jpg"
-            Path targetLocation = this.fileStorageLocation.resolve(newFileName);
-
+            Path targetLocation = null;
+            if(imageType == ImageType.COVER){
+                targetLocation = this.coverStorageLocation.resolve(newFileName);
+            }else {
+                targetLocation = this.profileStorageLocation.resolve(newFileName);
+            }
             // 5. Copiar el archivo que nos llega al disco duro
             // StandardCopyOption.REPLACE_EXISTING sobreescribe si por algún milagro el UUID se repitiera
             Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);

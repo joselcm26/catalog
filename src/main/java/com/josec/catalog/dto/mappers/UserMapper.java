@@ -1,43 +1,40 @@
 package com.josec.catalog.dto.mappers;
 
+import com.josec.catalog.dto.UserProfileUpdateRequestDTO;
 import com.josec.catalog.dto.UserRequestDTO;
 import com.josec.catalog.dto.UserResponseDTO;
 import com.josec.catalog.model.User;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Component;
+import org.mapstruct.*;
 
-@Component
-public class UserMapper {
-
-    @Autowired
-    PasswordEncoder passwordEncoder;
+/**
+ * Mapper para los usuarios
+ */
+@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
+public interface UserMapper {
 
     /**
-     * Mapea objetos @UserRequestDTO en objetos @User
-     * @param userRequestDTO objeto DTO a convertir
-     * @return Objeto User
+     * Mapeo estándar de Entidad a DTO
+     *
+     * @param user entidad a mapear
+     * @return UserResponseDTO
      */
-    public User mapToEntity(UserRequestDTO userRequestDTO) {
-        User user = new User();
-        user.setUsername(userRequestDTO.getUsername());
-        user.setEmail(userRequestDTO.getEmail());
-
-        // Encriptamos la contraseña antes de guardarla en el objeto User
-        user.setPassword(passwordEncoder.encode(userRequestDTO.getPassword()));
-        return user;
-    }
+    UserResponseDTO toDTO(User user);
 
     /**
-     * Mapea objetos User en objetos @UserResponseDTO
-     * @param user objeto usuario a convertir
-     * @return objeto UserResponse convertido
+     *  Mapeo a entidad
+     *
+     * @param userRequestDTO DTO a mapear
+     * @return entidad User mapeada
      */
-    public UserResponseDTO mapToDTO(User user) {
-        UserResponseDTO userResponseDTO = new UserResponseDTO();
-        userResponseDTO.setUsername(user.getUsername());
-        userResponseDTO.setEmail(user.getEmail());
-        userResponseDTO.setId(user.getId().longValue());
-        return userResponseDTO;
-    }
+    User toEntity(UserRequestDTO userRequestDTO);
+
+    /**
+     * / Copia los datos del DTO a la entidad ignorando los nulos
+     *
+     * @param dto petición con los datos nuevos
+     * @param entity entidad User a modificar
+     */
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    void updateEntityFromDto(UserProfileUpdateRequestDTO dto, @MappingTarget User entity);
+
 }

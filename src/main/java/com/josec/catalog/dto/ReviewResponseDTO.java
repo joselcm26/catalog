@@ -12,5 +12,5 @@ public class ReviewResponseDTO {
 
     //Campos autor
     private Long userId;
-    private String username;
+    private String userName;
 }

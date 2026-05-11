@@ -1,8 +1,12 @@
 package com.josec.catalog.model;
 
+import com.josec.catalog.model.enums.Visibility;
+import com.josec.catalog.security.Ownable;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,7 +18,11 @@ import java.util.List;
 @Setter
 @Entity
 @Table(name = "book_lists")
-public class BookList {
+// 1. Convierte repository.delete() en un UPDATE automático
+@SQLDelete(sql = "UPDATE book_lists SET deleted_at = NOW() WHERE id = ?")
+// 2. Filtra automáticamente los borrados en todos los select
+@SQLRestriction("deleted_at IS NULL")
+public class BookList extends SoftDeleteable implements Ownable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,8 +33,9 @@ public class BookList {
 
     private String description;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private boolean isPublic = true;
+    private Visibility visibility = Visibility.PRIVATE; // Privado por defecto
 
     // --- RELACIONES ---
 

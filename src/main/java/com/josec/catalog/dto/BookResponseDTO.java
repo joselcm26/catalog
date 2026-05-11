@@ -11,7 +11,7 @@ public class BookResponseDTO {
     private String author;
     private Integer publicationYear;
     private String synopsis;
-    private String coverUrl; // URL completa de la imagen
+    private String coverImage; // URL completa de la imagen
 
     // Reviews
     private List<ReviewResponseDTO> reviews;

@@ -87,7 +87,7 @@ public class BookController {
             @RequestParam("file") MultipartFile file
     ) {
         // 1. Guardar archivo en el disco duro y obtenemos su nombre
-        String filename = fileStorageService.saveCoverImage(file);
+        String filename = fileStorageService.saveImage(file, FileStorageService.ImageType.COVER);
 
         // 2. Actualizar libro en la base de datos
         BookResponseDTO updatedBook = bookService.updateCoverImage(id, filename);
